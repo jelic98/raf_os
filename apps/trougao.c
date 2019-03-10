@@ -1,5 +1,3 @@
-#include "oblici.h"
-
 static int a;
 static int b;
 static int c;
@@ -33,6 +31,7 @@ int povrsina_trougao() {
 		"movl %1, %%eax;"
 		"movl $2, %%ebx;"
 		"idivl %%ebx;"
+		"movl %%eax, %0;"
 		: "=r" (povrsina)
 		: "r" (a), "r" (b)
 		: "%ebx"

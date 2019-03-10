@@ -1,6 +1,9 @@
 #include <unistd.h>
 #include <string.h>
+
+#define H_UTILS_IMPLEMENT
 #include "utils.h"
+
 #include "oblici.h"
 
 static void (*f_unos[])() = {unos_trougao, unos_kvadrat, unos_krug};
@@ -17,12 +20,12 @@ void main(int argc, char** argv) {
 	while(1) {
 		print(MSG_MENU);
 		opt = scannum();
-		
+
 		if(opt-- == 0) {
 			break;
 		}
 
-		if(opt < 0 && opt > 2) {
+		if(opt < 0 || opt > 2) {
 			println(MSG_ERROR);
 			continue;
 		}
@@ -32,4 +35,6 @@ void main(int argc, char** argv) {
 		printnum(f_racunanje[opt][0]());
 		printnum(f_racunanje[opt][1]());
 	}
+	
+	_exit(0);
 }

@@ -1,5 +1,3 @@
-#include "oblici.h"
-
 static int r;
 
 void unos_krug() {
@@ -25,7 +23,6 @@ int povrsina_krug() {
 
 	__asm__ __volatile__ (
 		"imull %1, %1;"
-		"imull $4, %1;"
 		"imull $3, %1;"
 		"movl %1, %0;"
 		: "=r" (povrsina)
