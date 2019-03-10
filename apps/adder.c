@@ -8,7 +8,7 @@ void main(int argc, char** argv) {
 	scan(buf);
 
 	int one = atoi(buf);
-	int two = atoi(buf + digcnt(one) + 1);
+	int two = atoi(buf + digitcount(one) + 1);
 
 	printnum(one + two);
 

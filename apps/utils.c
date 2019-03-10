@@ -1,51 +1,71 @@
 #include <string.h>
 #include "utils.h"
 
-int digcnt(int num) {
-	int cnt = -1;
+int digitcount(int n) {
+	int count = -1;
 
-	while(cnt++, num > 0) {
-		num /= 10;
+	while(count++, n > 0) {
+		n /= 10;
 	}
 
-	return cnt;
+	return count;
 }
 
-int atoi(char* str) {
-	int num = 0;
-	char chr;
+void reverse(char* buf, int len) {
+	int i, j;
+	char c;
 
-	while(chr = *(str++), chr >= '0' && chr <= '9') {
-		num *= 10;
-		num += chr - ASC_OFF;
-	}
-
-	return num;
-}
-
-void itoa(int num, char* str) {
-	int len = digcnt(num);
-
-	while(num > 0) {
-		str[--len] = num % 10 + ASC_OFF;		
-		num /= 10;
+	for(i = 0, j = len - 1; i < j; ++i, --j) {
+		c = buf[i];
+		buf[i] = buf[j];
+		buf[j] = c;
 	}
 }
 
-char* newln(char* str, int len) {
-	str[len] = NEW_LN;
+int itoa(int n, char* buf) {
+	int i = 0, sgn;
 
-	return str;
+	if((sgn = n) < 0) {
+		n = -n;
+	}
+
+	do{
+		buf[i++] = n % 10 + ASCII_OFFSET;
+	}while((n /= 10) > 0);
+
+	if(sgn < 0) {
+		buf[i++] = '-';
+	}
+
+	buf[i] = '\0';
+	
+	reverse(buf, i);
+	
+	return i;
+}
+
+int atoi(const char* buf) {
+	int r = 0, i;
+
+	for(i = 0; __isdigit(buf[i]); ++i) {
+		r = r * 10 + buf[i] - ASCII_OFFSET;
+	}
+
+	return r;
+}
+
+char* newln(char* buf, int len) {
+	buf[len] = NEW_LINE;
+
+	return buf;
 }
 
 void scan(char* buf) {
-	int len = read(0, buf, BUF_LEN);
-
-	buf[len - 1] = STR_END;
+	buf[read(0, buf, BUFFER_LENGTH) - 1] = STRING_END;
 }
 
 int scannum() {
-	char buf[BUF_LEN];
+	char buf[BUFFER_LENGTH];
 
 	scan(buf);
 
@@ -55,19 +75,17 @@ int scannum() {
 void print(char* buf) {
 	int len = strlen(buf);
 
-	buf[len] = STR_END;
+	buf[len] = STRING_END;
 	
 	write(1, buf, len + 1);
 }
 
 void println(char* buf) {
-	int len = strlen(buf);
-	
-	print(newln(buf, len));
+	print(newln(buf, strlen(buf)));
 }
 
 void printnum(int num) {
-	char buf[BUF_LEN];
+	char buf[BUFFER_LENGTH];
 	
 	itoa(num, buf);
 

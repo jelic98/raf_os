@@ -22,7 +22,7 @@ void main(int argc, char** argv) {
 			break;
 		}
 
-		if(opt < 0 && opt > 2) {
+		if(opt < 0 || opt > 2) {
 			println(MSG_ERROR);
 			continue;
 		}
