@@ -31,6 +31,7 @@ int povrsina_trougao() {
 		"movl %1, %%eax;"
 		"movl $2, %%ebx;"
 		"idivl %%ebx;"
+		"movl %%eax, %0;"
 		: "=r" (povrsina)
 		: "r" (a), "r" (b)
 		: "%ebx"
