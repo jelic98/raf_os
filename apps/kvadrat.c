@@ -1,5 +1,3 @@
-#include "oblici.h"
-
 static int a;
 
 void unos_kvadrat() {

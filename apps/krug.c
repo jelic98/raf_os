@@ -1,5 +1,3 @@
-#include "oblici.h"
-
 static int r;
 
 void unos_krug() {

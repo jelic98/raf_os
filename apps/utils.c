@@ -11,7 +11,7 @@ int digcnt(int num) {
 	return cnt;
 }
 
-int strtonum(char* str) {
+int atoi(char* str) {
 	int num = 0;
 	char chr;
 
@@ -23,7 +23,7 @@ int strtonum(char* str) {
 	return num;
 }
 
-void numtostr(int num, char* str) {
+void itoa(int num, char* str) {
 	int len = digcnt(num);
 
 	while(num > 0) {
@@ -49,7 +49,7 @@ int scannum() {
 
 	scan(buf);
 
-	return strtonum(buf);
+	return atoi(buf);
 }
 
 void print(char* buf) {
@@ -69,7 +69,7 @@ void println(char* buf) {
 void printnum(int num) {
 	char buf[BUF_LEN];
 	
-	numtostr(num, buf);
+	itoa(num, buf);
 
 	println(buf);	
 }

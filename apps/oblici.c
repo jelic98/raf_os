@@ -17,7 +17,7 @@ void main(int argc, char** argv) {
 	while(1) {
 		print(MSG_MENU);
 		opt = scannum();
-		
+
 		if(opt-- == 0) {
 			break;
 		}
@@ -32,4 +32,6 @@ void main(int argc, char** argv) {
 		printnum(f_racunanje[opt][0]());
 		printnum(f_racunanje[opt][1]());
 	}
+	
+	_exit(0);
 }
