@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
 
 #define STD_IN 0
 #define STD_OUT 1
@@ -12,7 +13,9 @@
 #define ASCII_OFFSET 48
 #define STRING_END '\0'
 #define NEW_LINE '\n'
-#define PI 3.14
+
+#define MSG_FILE_NAME "Unesite naziv fajla: "
+#define MSG_FILE_ERROR "Greska pri otvaranju fajla\n"
 
 #define __isdigit(x) ((x >= '0') && (x <= '9'))
 
@@ -35,7 +38,10 @@ char* newln(char* buf, int len);
 
 void scan(char* buf);
 int scannum();
-int fgets(char* buf, int len, int fd);
+
+int fopen(char* name);
+void fclose(int fd);
+int fgets(char* buf, int fd);
 
 void print(char* buf);
 void println(char* buf);
@@ -116,12 +122,27 @@ int scannum() {
 	return atoi(buf);
 }
 
-int fgets(char* buf, int len, int fd) {
+int fopen(char* name) {
+	int fd = open(name, O_RDONLY);
+
+	if(fd == -1) {
+		print(MSG_FILE_ERROR);
+		_exit(1);
+	}
+
+	return fd;
+}
+
+void fclose(int fd) {
+	close(fd);
+}
+
+int fgets(char* buf, int fd) {
 	int i = 0;
 	char c;
 
 	do {
-		if(!read(fd, &c, 1) || i == len - 1) {
+		if(!read(fd, &c, 1) || i == BUFFER_LENGTH - 1) {
 			break;
 		}
 
@@ -161,5 +182,5 @@ void pause() {
 	read(STD_IN, b, 10);
 }
 
-#endif // IMPLEMENT
-#endif // INCLUDE
+#endif
+#endif
