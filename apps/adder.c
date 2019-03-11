@@ -1,6 +1,5 @@
-#include <string.h>
-#include <unistd.h>
-#include "utils.c"
+#define H_UTILS_IMPLEMENT
+#include "utils.h"
 
 void main(int argc, char** argv) {
 	char buf[BUF_LEN];

@@ -1,6 +1,9 @@
 #include <unistd.h>
 #include <string.h>
+
+#define H_UTILS_IMPLEMENT
 #include "utils.h"
+
 #include "oblici.h"
 
 static void (*f_unos[])() = {unos_trougao, unos_kvadrat, unos_krug};
