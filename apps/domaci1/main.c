@@ -1,30 +1,41 @@
 #define H_UTILS_IMPLEMENT
 #include "../utils.h"
-
-#define NAME_LENGTH 32
-
-#define FILE_SCANCODES "scancodes.txt"
-#define FILE_MNEMONICS "mnemonics.txt"
+#include "scan.h"
 
 void main(int argc, char** argv) {
-	char filename[NAME_LENGTH];
+	load_config(FILE_SCANCODES, FILE_MNEMONICS);
 
-	print(MSG_FILE_NAME);
-	scan(filename);
-	int file = fopen(filename);
+	while(1) {
+		char filename[FILENAME_LENGTH];
 
-	char buf[BUFFER_LENGTH];	
-	fgets(buf, file);
+		print(MSG_FILE_NAME);
+		scan(filename);
+		
+		if(!strcmp(filename, CMD_EXIT)) {
+			break;	
+		}
+
+		int file = fopen(filename);
+
+		int code;
+		char buf[CODE_LENGTH + 1];
 	
-	int n = atoi(buf);
-	int array[50];
-	int i;
+		do {
+			fgets(buf, CODE_LENGTH + 1, file), 
+			
+			code = atoi(buf);
+	
+			char out[OUTPUT_LENGTH] = {0};
+			
+			process_scancode(code, out);
 
-	for(i = 0; i < n; i++) {
-		fgets(buf, file);
-		array[i] = atoi(buf);
+			print(out);
+		}while(code != FILE_END);
+
+		print(NEW_LINE_STRING);
+
+		fclose(file);
 	}
-
-	fclose(file);
+	
 	_exit(0);
 }

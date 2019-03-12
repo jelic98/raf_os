@@ -13,6 +13,7 @@
 #define ASCII_OFFSET 48
 #define STRING_END '\0'
 #define NEW_LINE '\n'
+#define NEW_LINE_STRING "\n"
 
 #define MSG_FILE_NAME "Unesite naziv fajla: "
 #define MSG_FILE_ERROR "Greska pri otvaranju fajla\n"
@@ -41,7 +42,7 @@ int scannum();
 
 int fopen(char* name);
 void fclose(int fd);
-int fgets(char* buf, int fd);
+int fgets(char* buf, int len, int fd);
 
 void print(char* buf);
 void println(char* buf);
@@ -137,12 +138,12 @@ void fclose(int fd) {
 	close(fd);
 }
 
-int fgets(char* buf, int fd) {
+int fgets(char* buf, int len, int fd) {
 	int i = 0;
 	char c;
 
 	do {
-		if(!read(fd, &c, 1) || i == BUFFER_LENGTH - 1) {
+		if(!read(fd, &c, 1) || i == len - 1) {
 			break;
 		}
 
