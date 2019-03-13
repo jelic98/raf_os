@@ -21,11 +21,11 @@
 #define __isdigit(x) ((x >= '0') && (x <= '9'))
 
 #define vardump(x) {\
-	char buff[128];\
+	char buf[BUFFER_LENGTH];\
 	int len;\
-	len = itoa(x, buff);\
+	len = itoa(x, buf);\
 	write(STD_OUT, #x ": ", strlen(#x ": "));\
-	write(STD_OUT, buff, len);\
+	write(STD_OUT, buf, len);\
 	write(STD_OUT, "\n", 1);\
 }
 

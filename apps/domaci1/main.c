@@ -2,17 +2,21 @@
 #include "../utils.h"
 #include "scan.h"
 
+#define DEBUG 1
+
 void main(int argc, char** argv) {
 	load_config(FILE_SCANCODES, FILE_MNEMONICS);
 
 	while(1) {
-		char filename[FILENAME_LENGTH];
+		char filename[FILENAME_LENGTH] = FILE_TEST;
 
-		print(MSG_FILE_NAME);
-		scan(filename);
+		if(!DEBUG) {
+			print(MSG_FILE_NAME);
+			scan(filename);
 		
-		if(!strcmp(filename, CMD_EXIT)) {
-			break;	
+			if(!strcmp(filename, CMD_EXIT)) {
+				break;	
+			}
 		}
 
 		int file = fopen(filename);
@@ -24,10 +28,14 @@ void main(int argc, char** argv) {
 			fgets(buf, CODE_LENGTH + 1, file), 
 			
 			code = atoi(buf);
-	
+
 			char out[OUTPUT_LENGTH] = {0};
 			
-			process_scancode(code, out);
+			int result = process_scancode(code, out);
+
+			if(DEBUG) {
+				vardump(result);
+			}
 
 			print(out);
 		}while(code != FILE_END);
@@ -35,6 +43,8 @@ void main(int argc, char** argv) {
 		print(NEW_LINE_STRING);
 
 		fclose(file);
+
+		if(DEBUG) break;
 	}
 	
 	_exit(0);
