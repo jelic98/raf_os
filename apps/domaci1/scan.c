@@ -48,8 +48,6 @@ void load_config(const char* scancodes_filename, const char* mnemonics_filename)
 
 		mnemonics[2 * i] = buf[0];
 		mnemonics[2 * i + 1] = (int) buf + 2;
-	
-		println(buf + 2);
 	}
 
 	fclose(mnemonics_file);
@@ -57,31 +55,60 @@ void load_config(const char* scancodes_filename, const char* mnemonics_filename)
 
 int process_scancode(int scancode, char* buffer) {
 	int result;
+	
+	// flags = 00000SCA
+	// S = shift (1 down, 0 up)
+	// C = ctrl (1 down, 0 up)
+	// A = alt (1 down, 0 up)
 
 	__asm__ __volatile__ (	
-		"cmpl $"SHIFT_DOWN", %%ecx;"
-		"je KEY_DW;"
-		
-		"cmpl $"SHIFT_UP", %%ecx;"
-		"je KEY_UP;"
-		
-		"cmpl $"CTRL_DOWN", %%ecx;"
-		"je KEY_DW;"
-		
-		"cmpl $"CTRL_UP", %%ecx;"
-		"je KEY_UP;"
-		
-		"cmpl $"ALT_DOWN", %%ecx;"
-		"xorb %bl, %bl"
-		"je KEY_DW;"
-	
-		"cmpl $"ALT_UP", %%ecx;"
-		"je KEY_UP;"	
+		"jmp START;"
 
-		"SETUP:"
-		"incl %%ecx;"
+		"SHIFT_DOWN:"
+		"orb $0x4, %%dl;"
+		"jmp EXIT;"
+		
+		"CTRL_DOWN:"
+		"orb $0x2, %%dl;"
+		"jmp EXIT;"
+		
+		"ALT_DOWN:"
+		"orb $0x1, %%dl;"
+		"jmp EXIT;"	
+
+		"SHIFT_UP:"
+		"andb $0x3, %%dl;"
+		"jmp EXIT;"
+		
+		"CTRL_UP:"
+		"andb $0x5, %%dl;"
+		"jmp EXIT;"
+	
+		"ALT_UP:"
+		"andb $0x6, %%dl;"
+		"jmp EXIT;"
+
+		"START:"
 		"xorl %%ebx, %%ebx;"
 
+		"cmpl $"SHIFT_DOWN", %%ecx;"
+		"je SHIFT_DOWN;"
+
+		"cmpl $"CTRL_DOWN", %%ecx;"
+		"je CTRL_DOWN;"
+
+		"cmpl $"ALT_DOWN", %%ecx;"
+		"je ALT_DOWN;"
+		
+		"cmpl $"SHIFT_UP", %%ecx;"
+		"je SHIFT_UP;"
+		
+		"cmpl $"CTRL_UP", %%ecx;"
+		"je CTRL_UP;"
+		
+		"cmpl $"ALT_UP", %%ecx;"
+		"je ALT_UP;"	
+/*
 		"RESET_OUT:"
 		"movl %1, %%edi;"
 
@@ -92,6 +119,7 @@ int process_scancode(int scancode, char* buffer) {
 		"stosb;"
 		"ret;" // u edi je pocetak chara
 
+		"incl %%ecx;"
 		"PRINT_CHAR:" // u esi je pocetak inputa
 		"cmpb $0x0, (%%esi);"
 		"je EXIT;"
@@ -113,17 +141,20 @@ int process_scancode(int scancode, char* buffer) {
 		"movb $0x0, 1(%%esi);"
 		"jmp PRINT_CHAR;"
 
-		"ALT_PRINT:" // u bl je alt char, u al je ucitana cifra
-		"shlb %%bl;"
-		"orb %%al, %%bl;"
-		"movb %%bl, (alt);"
+		"ALT_PRINT:" // u bh je alt char, u al je ucitana cifra
+		"shlb %%bh;"
+		"orb %%al, %%bh;"
+		"movb %%bh, (alt);"
 		"jmp EXIT;"
-
+*/
 		"EXIT:"
-		: "=b" (result)
-		: "S" (scancodes), "D" (buffer), "c" (scancode)
-		: "eax", "edx"
+		
+		: "=b" (result), "=d" (flags)
+		: "S" (scancodes), "D" (buffer), "c" (scancode), "d" (flags)
+		: "eax"
 	);
+
+	printnum(flags);
 
 	return result;
 }
