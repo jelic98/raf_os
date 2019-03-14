@@ -4,8 +4,11 @@
 
 #define DEBUG 1
 
+static const char scancodes_filename[FILENAME_LENGTH] = FILE_SCANCODES;
+static const char mnemonics_filename[FILENAME_LENGTH] = FILE_MNEMONICS;
+
 void main(int argc, char** argv) {
-	load_config(FILE_SCANCODES, FILE_MNEMONICS);
+	load_config(scancodes_filename, mnemonics_filename);
 
 	while(1) {
 		char filename[FILENAME_LENGTH] = FILE_TEST;
@@ -32,10 +35,6 @@ void main(int argc, char** argv) {
 			char out[OUTPUT_LENGTH] = {0};
 			
 			int result = process_scancode(code, out);
-
-			if(DEBUG) {
-				vardump(result);
-			}
 
 			print(out);
 		}while(code != FILE_END);
