@@ -35,7 +35,9 @@ void main(int argc, char** argv) {
 
 			char out[OUTPUT_LENGTH] = {0};
 			
-			count += process_scancode(code, out);
+			int result = process_scancode(code, out);
+			
+			count += result;			
 
 			print(out);
 		}while(code != atoi(CODE_END));

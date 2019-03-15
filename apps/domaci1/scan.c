@@ -1,7 +1,7 @@
 #include "scan.h"
 
 static char scancodes[SCANCODES_LENGTH * 2 + 1] = {0};
-static int mnemonics[MNEMONICS_LENGTH * 2] = {0};
+static int mnemonics[MNEMONICS_LENGTH * 2];
 static char alt = 0;
 static char flags = 0;
 
@@ -40,14 +40,14 @@ void load_config(const char* scancodes_filename, const char* mnemonics_filename)
 	char tmp[3];
 	fgets(tmp, 3, mnemonics_file);
 	int n = atoi(tmp);
+	char buf[3][maxlen];
 
 	for(i = 0; i < n; i++) {
-		char buf[maxlen];
-		int len = fgets(buf, maxlen, mnemonics_file);
-		buf[len - 1] = 0;
+		int len = fgets(buf[i], maxlen, mnemonics_file);
+		buf[i][len - 1] = '\0';
 
-		mnemonics[2 * i] = buf[0];
-		mnemonics[2 * i + 1] = (int) buf + 2;
+		mnemonics[2 * i] = buf[i][0];
+		mnemonics[2 * i + 1] = (int) buf[i] + 2;
 	}
 
 	fclose(mnemonics_file);
@@ -56,7 +56,7 @@ void load_config(const char* scancodes_filename, const char* mnemonics_filename)
 int process_scancode(int scancode, char* buffer) {
 	int result;
 
-	// AH = ESI -> AH -> EDI
+	// AH = auxiliary
 	// BX = output counter
 	// CX = scancode
 	// DL = flags
@@ -79,7 +79,7 @@ int process_scancode(int scancode, char* buffer) {
 		"cld;"
 		"rep;"
 		"lodsw;"
-		"stosb;"		
+		"stosb;"
 		"popl %%ecx;"
 		"ret;"
 		
@@ -89,22 +89,35 @@ int process_scancode(int scancode, char* buffer) {
 		"jmp CTRL_CHECK;"
 
 		"CTRL_PRINT:"
-		"addl $0x1, %%ecx;"
-		"imull $0x2, %%ecx;"
-		"subl %%ecx, %%esi;"
-		"movb (%%edi), %%al;"
-		"CTRL_PRINT_LOOP:"
-		"cmpb (%%esi), %%al;"
-		"je CTRL_PRINT_AFTER;"
-		"incl %%esi;"
-		"jmp CTRL_PRINT_LOOP;"
-		"CTRL_PRINT_AFTER:"
-		"movl %%edi, %%ecx;"
-		"subl %%esi, %%ecx;"
-		"addl $0x6, %%ecx;"
-		"call PRINT;"
-		"jmp ALT_CHECK;"
+		"movl %4, %%esi;"
 
+		"CTRL_LOOP:"
+		"cmpb (%%esi), %%al;"
+		"je CTRL_LOOP_AFTER;"
+		"addl $0x8, %%esi;"
+		"jmp CTRL_LOOP;"
+
+		"CTRL_LOOP_AFTER:"
+		"addl $0x4, %%esi;"
+		"movl (%%esi), %%esi;"
+		"xorl %%ecx, %%ecx;"
+
+		"CTRL_LENGTH:"
+		"lodsb;"
+		"cmpb $0x0, %%al;"
+		"je CTRL_LENGTH_AFTER;"
+		"incl %%ecx;"
+		"jmp CTRL_LENGTH;"
+
+		"CTRL_LENGTH_AFTER:"
+		"decl %%edi;"
+		"subl %%ecx, %%esi;"
+		"decl %%esi;"
+		"cld;"
+		"rep;"
+		"movsb;"
+		"jmp ALT_CHECK;"
+		
 		"ALT_PRINT:"
 		"movb $0xA, %%al;"
 		"imulb %8;"
