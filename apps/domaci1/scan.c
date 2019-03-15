@@ -162,7 +162,7 @@ int process_scancode(int scancode, char* buffer) {
 		"movb %8, %%al;"
 		"cld;"
 		"stosb;"
-		"xorb %%al, %%al;"
+		"movb $0x0, %8;"
 		"andb $0x6, %%dl;"
 		"jmp EXIT;"
 		
