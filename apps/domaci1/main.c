@@ -1,8 +1,8 @@
 #define H_UTILS_IMPLEMENT
-#include "../utils.h"
+#include "utils.h"
 #include "scan.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 static const char scancodes_filename[FILENAME_LENGTH] = FILE_SCANCODES;
 static const char mnemonics_filename[FILENAME_LENGTH] = FILE_MNEMONICS;
@@ -35,10 +35,8 @@ void main(int argc, char** argv) {
 
 			char out[OUTPUT_LENGTH] = {0};
 			
-			int result = process_scancode(code, out);
+			count += process_scancode(code, out);
 			
-			count += result;			
-
 			print(out);
 		}while(code != atoi(CODE_END));
 
