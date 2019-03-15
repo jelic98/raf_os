@@ -7,9 +7,11 @@
 #define CTRL_UP "301"
 #define ALT_DOWN "202"
 #define ALT_UP "302"
+#define CODE_END "400"
 
 #define CMD_EXIT "exit"
-#define FILE_END 400
+
+#define MSG_CHAR_COUNT "Character count: "
 
 #define SCANCODES_LENGTH 128
 #define MNEMONICS_LENGTH 16

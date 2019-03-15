@@ -55,6 +55,13 @@ void load_config(const char* scancodes_filename, const char* mnemonics_filename)
 
 int process_scancode(int scancode, char* buffer) {
 	int result;
+
+	// AH = ESI -> AH -> EDI
+	// BX = output counter
+	// CX = scancode
+	// DL = flags
+	// ESI = input scancodes
+	// EDI = output buffer
 	
 	// flags = 00000SCA
 	// S = shift (1 down, 0 up)
@@ -63,6 +70,32 @@ int process_scancode(int scancode, char* buffer) {
 
 	__asm__ __volatile__ (	
 		"jmp START;"
+
+		// PRINT BEGIN
+
+		"PRINT:"
+		"incl %%ecx;"
+		"cld;"
+		"rep;"
+		"lodsw;"
+		"stosb;"		
+		"ret;"
+
+		"SHIFT_PRINT:"
+		"decl %%esi;"
+		"decl %%edi;"
+		"movsb;"
+		"jmp EXIT;"
+
+		"CTRL_PRINT:"
+		"decl %%esi;"
+		"decl %%edi;"
+		"movsb;"
+		"jmp EXIT;"
+
+		// PRINT END
+
+		// KEY DOWN BEGIN
 
 		"SHIFT_DOWN:"
 		"orb $0x4, %%dl;"
@@ -76,6 +109,10 @@ int process_scancode(int scancode, char* buffer) {
 		"orb $0x1, %%dl;"
 		"jmp EXIT;"	
 
+		// KEY DOWN END
+		
+		// KEY UP BEGIN
+
 		"SHIFT_UP:"
 		"andb $0x3, %%dl;"
 		"jmp EXIT;"
@@ -88,8 +125,15 @@ int process_scancode(int scancode, char* buffer) {
 		"andb $0x6, %%dl;"
 		"jmp EXIT;"
 
+		// KEY UP END
+		
+		// START BEGIN
+
 		"START:"
-		"xorl %%ebx, %%ebx;"
+		"movl %%edi, %%ebx;"
+
+		"cmpl $"CODE_END", %%ecx;"
+		"je EXIT;"
 
 		"cmpl $"SHIFT_DOWN", %%ecx;"
 		"je SHIFT_DOWN;"
@@ -108,26 +152,34 @@ int process_scancode(int scancode, char* buffer) {
 		
 		"cmpl $"ALT_UP", %%ecx;"
 		"je ALT_UP;"	
-/*
+
+		"call PRINT;"
+
+		// START END
+
+		// CHECK BEGIN
+
+		"SHIFT_CHECK:"
+		"pushw %%dx;"
+		"andb $0x4, %%dl;"
+		"cmpb $0x0, %%dl;"
+		"popw %%dx;"
+		"jne SHIFT_PRINT;"
+
+		"CTRL_CHECK:"
+		"pushw %%dx;"
+		"andb $0x2, %%dl;"
+		"cmpb $0x0, %%dl;"
+		"popw %%dx;"
+		"jne CTRL_PRINT;"
+
+		// CHECK END
+
+/*	
 		"RESET_OUT:"
 		"movl %1, %%edi;"
 
-		"GET_CHAR:" // u ecx je sc
-		"cld;"
-		"rep;"
-		"lodsb;"
-		"stosb;"
-		"ret;" // u edi je pocetak chara
-
-		"incl %%ecx;"
-		"PRINT_CHAR:" // u esi je pocetak inputa
-		"cmpb $0x0, (%%esi);"
-		"je EXIT;"
-		"movsb;"
-		"incl %%ebx;"
-		"jmp PRINT_CHAR;" // u ebx je result
-		
-		"CTRL_PRINT:" // u edi je pocetak chara, u esi je pocetak mnemonika
+		"CTRL_CHECK:" // u edi je pocetak chara, u esi je pocetak mnemonika
 		"cmpb (%%edi), (%%esi);"
 		"je MNEM_FOUND;"
 		"addl $8, %%esi;"
@@ -135,26 +187,21 @@ int process_scancode(int scancode, char* buffer) {
 		"incl %%esi;"
 		"jmp PRINT_CHAR;"
 
-		"SHIFT_PRINT:" // u edi je pocetak small caps
-		"incb %%edi;"
-		"movl %%edi, %%esi;"
-		"movb $0x0, 1(%%esi);"
-		"jmp PRINT_CHAR;"
-
-		"ALT_PRINT:" // u bh je alt char, u al je ucitana cifra
+		"ALT_CHECK:" // u bh je alt char, u al je ucitana cifra
 		"shlb %%bh;"
 		"orb %%al, %%bh;"
 		"movb %%bh, (alt);"
 		"jmp EXIT;"
 */
 		"EXIT:"
+		"subl %%edi, %%ebx;"
+		"negl %%ebx;"
+		//"movb $0x0, 1(%%edi);"
 		
 		: "=b" (result), "=d" (flags)
 		: "S" (scancodes), "D" (buffer), "c" (scancode), "d" (flags)
 		: "eax"
 	);
-
-	printnum(flags);
 
 	return result;
 }

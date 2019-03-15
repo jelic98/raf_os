@@ -15,8 +15,8 @@
 #define NEW_LINE '\n'
 #define NEW_LINE_STRING "\n"
 
-#define MSG_FILE_NAME "Unesite naziv fajla: "
-#define MSG_FILE_ERROR "Greska pri otvaranju fajla\n"
+#define MSG_FILE_NAME "File name: "
+#define MSG_FILE_ERROR "Cannot open selected file\n"
 
 #define __isdigit(x) ((x >= '0') && (x <= '9'))
 

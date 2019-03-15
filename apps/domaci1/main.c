@@ -25,21 +25,24 @@ void main(int argc, char** argv) {
 		int file = fopen(filename);
 
 		int code;
-		char buf[CODE_LENGTH + 1];
+		int count = 0;
+		char buf[BUFFER_LENGTH];
 	
 		do {
-			fgets(buf, CODE_LENGTH + 1, file), 
+			fgets(buf, BUFFER_LENGTH + 1, file), 
 			
 			code = atoi(buf);
 
 			char out[OUTPUT_LENGTH] = {0};
 			
-			int result = process_scancode(code, out);
+			count += process_scancode(code, out);
 
 			print(out);
-		}while(code != FILE_END);
+		}while(code != atoi(CODE_END));
 
 		print(NEW_LINE_STRING);
+
+		itoa(count, buf), println(strcat(MSG_CHAR_COUNT, buf));
 
 		fclose(file);
 
