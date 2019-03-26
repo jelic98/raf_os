@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
 
 #define STD_IN 0
 #define STD_OUT 1
@@ -12,16 +13,19 @@
 #define ASCII_OFFSET 48
 #define STRING_END '\0'
 #define NEW_LINE '\n'
-#define PI 3.14
+#define NEW_LINE_STRING "\n"
+
+#define MSG_FILE_NAME "File name: "
+#define MSG_FILE_ERROR "Cannot open selected file\n"
 
 #define __isdigit(x) ((x >= '0') && (x <= '9'))
 
 #define vardump(x) {\
-	char buff[128];\
+	char buf[BUFFER_LENGTH];\
 	int len;\
-	len = itoa(x, buff);\
+	len = itoa(x, buf);\
 	write(STD_OUT, #x ": ", strlen(#x ": "));\
-	write(STD_OUT, buff, len);\
+	write(STD_OUT, buf, len);\
 	write(STD_OUT, "\n", 1);\
 }
 
@@ -35,6 +39,9 @@ char* newln(char* buf, int len);
 
 void scan(char* buf);
 int scannum();
+
+int fopen(char* name);
+void fclose(int fd);
 int fgets(char* buf, int len, int fd);
 
 void print(char* buf);
@@ -116,6 +123,21 @@ int scannum() {
 	return atoi(buf);
 }
 
+int fopen(char* name) {
+	int fd = open(name, O_RDONLY);
+
+	if(fd == -1) {
+		print(MSG_FILE_ERROR);
+		_exit(1);
+	}
+
+	return fd;
+}
+
+void fclose(int fd) {
+	close(fd);
+}
+
 int fgets(char* buf, int len, int fd) {
 	int i = 0;
 	char c;
@@ -161,5 +183,5 @@ void pause() {
 	read(STD_IN, b, 10);
 }
 
-#endif // IMPLEMENT
-#endif // INCLUDE
+#endif
+#endif
