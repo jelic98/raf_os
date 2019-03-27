@@ -545,6 +545,47 @@ void con_write(struct tty_struct * tty)
 	set_cursor();
 }
 
+// DOMACI
+
+static volatile struct {
+   unsigned int m : 1;
+} Mode;
+
+static volatile char color = 0x0A;
+static volatile char border = '#';
+static volatile char blank = ' ';
+static volatile int pos_start = 0xB8000;
+static volatile int line_w = 160;
+static volatile int square_w = 22;
+static volatile int square_h = 12;
+
+void change_mode() {
+	Mode.m = 1 - Mode.m;
+}
+
+void draw_square() {
+	int i, j;
+
+	for(i = 0; i < square_h; i++) {
+		for(j = 0; j < square_w; j++) {
+			int pos = pos_start + (i + 1) * line_w - 2 * square_w + 2 * j;
+
+			char c = blank;
+
+			if(i == 0 || i == square_h - 1 || j == 0 || j == square_w - 1) {
+				c = border;
+			}
+
+			__asm__ __volatile__(
+				"movb color, %%ah;"
+				"movw %%ax, (%%ebx);"
+				:
+				: "a" (c), "b" (pos)
+			);
+		}
+	}
+}
+
 /*
  *  void con_init(void);
  *

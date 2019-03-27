@@ -315,6 +315,28 @@ minus:	cmpb $1,e0
 	xorl %ebx,%ebx
 	jmp put_queue
 
+// DOMACI
+
+do_f1:
+	call change_mode
+	ret
+
+do_f2:
+	call draw_square
+	ret
+
+do_f3:
+	ret
+
+do_space:
+	ret
+
+do_up:
+do_down:
+do_left:
+do_right:
+	ret
+
 /*
  * This table decides which routine to call when a scan-code has been
  * gotten. Most routines just call do_self, or none, depending if
@@ -335,13 +357,13 @@ key_table:
 	.long do_self,do_self,do_self,do_self	/* 2C-2F z x c v */
 	.long do_self,do_self,do_self,do_self	/* 30-33 b n m , */
 	.long do_self,minus,rshift,do_self	/* 34-37 . - rshift * */
-	.long alt,do_self,caps,func		/* 38-3B alt sp caps f1 */
-	.long func,func,func,func		/* 3C-3F f2 f3 f4 f5 */
+	.long alt,do_self,caps,do_f1		/* 38-3B alt sp caps f1 */
+	.long do_f2,do_f3,func,func		/* 3C-3F f2 f3 f4 f5 */
 	.long func,func,func,func		/* 40-43 f6 f7 f8 f9 */
 	.long func,num,scroll,cursor		/* 44-47 f10 num scr home */
-	.long cursor,cursor,do_self,cursor	/* 48-4B up pgup - left */
-	.long cursor,cursor,do_self,cursor	/* 4C-4F n5 right + end */
-	.long cursor,cursor,cursor,cursor	/* 50-53 dn pgdn ins del */
+	.long do_up,cursor,do_self,do_left	/* 48-4B up pgup - left */
+	.long cursor,do_right,do_self,cursor	/* 4C-4F n5 right + end */
+	.long do_down,cursor,cursor,cursor	/* 50-53 dn pgdn ins del */
 	.long none,none,do_self,func		/* 54-57 sysreq ? < f11 */
 	.long func,none,none,none		/* 58-5B f12 ? ? ? */
 	.long none,none,none,none		/* 5C-5F ? ? ? ? */
