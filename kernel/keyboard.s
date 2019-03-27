@@ -317,18 +317,25 @@ minus:	cmpb $1,e0
 
 // DOMACI
 
-do_f1:
+do_f1_down:
+	call a_mode_on
+	ret
+
+do_f1_up:
+	call a_mode_off
 	ret
 
 do_f2:
-	call change_mode
+	call c_mode
 	call draw_square
 	ret
 
 do_f3:
+	call e_mode
 	ret
 
 do_space:
+	call copy_row
 	ret
 
 do_up:
@@ -342,10 +349,12 @@ do_down:
 	ret
 
 do_left:
+	call go_left
 	call draw_square
 	ret
 	
 do_right:
+	call go_right
 	call draw_square
 	ret
 
@@ -369,7 +378,7 @@ key_table:
 	.long do_self,do_self,do_self,do_self	/* 2C-2F z x c v */
 	.long do_self,do_self,do_self,do_self	/* 30-33 b n m , */
 	.long do_self,minus,rshift,do_self	/* 34-37 . - rshift * */
-	.long alt,do_self,caps,do_f1		/* 38-3B alt sp caps f1 */
+	.long alt,do_space,caps,do_f1_down		/* 38-3B alt sp caps f1 */
 	.long do_f2,do_f3,func,func		/* 3C-3F f2 f3 f4 f5 */
 	.long func,func,func,func		/* 40-43 f6 f7 f8 f9 */
 	.long func,num,scroll,cursor		/* 44-47 f10 num scr home */
@@ -401,7 +410,7 @@ key_table:
 	.long none,none,none,none		/* AC-AF br br br br */
 	.long none,none,none,none		/* B0-B3 br br br br */
 	.long none,none,unrshift,none		/* B4-B7 br br unrshift br */
-	.long unalt,none,uncaps,none		/* B8-BB unalt br uncaps br */
+	.long unalt,none,uncaps,do_f1_up		/* B8-BB unalt br uncaps br */
 	.long none,none,none,none		/* BC-BF br br br br */
 	.long none,none,none,none		/* C0-C3 br br br br */
 	.long none,none,none,none		/* C4-C7 br br br br */
