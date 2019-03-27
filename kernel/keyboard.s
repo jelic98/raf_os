@@ -318,10 +318,10 @@ minus:	cmpb $1,e0
 // DOMACI
 
 do_f1:
-	call change_mode
 	ret
 
 do_f2:
+	call change_mode
 	call draw_square
 	ret
 
@@ -332,9 +332,21 @@ do_space:
 	ret
 
 do_up:
+	call go_up
+	call draw_square
+	ret
+
 do_down:
+	call go_down
+	call draw_square
+	ret
+
 do_left:
+	call draw_square
+	ret
+	
 do_right:
+	call draw_square
 	ret
 
 /*

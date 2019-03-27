@@ -20,6 +20,11 @@
 #include <asm/io.h>
 #include <asm/system.h>
 
+#include <string.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <fcntl.h>
+
 #define SCREEN_START 0xb8000
 #define SCREEN_END   0xc0000
 #define LINES 25
@@ -547,20 +552,33 @@ void con_write(struct tty_struct * tty)
 
 // DOMACI
 
-static volatile struct {
+static volatile union {
    unsigned int m : 1;
 } Mode;
 
-static volatile char color = 0x0A;
-static volatile char border = '#';
-static volatile char blank = ' ';
-static volatile int pos_start = 0xB8000;
-static volatile int line_w = 160;
-static volatile int square_w = 22;
-static volatile int square_h = 12;
+static unsigned int pos_start = 0xB8000;
+static unsigned int line_w = COLUMNS * 2;
+static unsigned int square_w = 22;
+static unsigned int square_h = 12;
+static unsigned int curr_row = 0;
+static volatile char white_black = 0xF0;
+static volatile char black_white = 0x0F;
+static volatile char black_green = 0x0A;
+static volatile char black_pink = 0x0D;
+static char border = '#';
+static char blank = ' ';
+static char header[2][21] = {"/", "clipboard"};
 
 void change_mode() {
 	Mode.m = 1 - Mode.m;
+}
+
+void go_up() {
+	curr_row = (--curr_row == -1) ? square_h - 3 : curr_row;
+}
+
+void go_down() {
+	curr_row = (++curr_row > square_h - 3) ? 0 : curr_row;
 }
 
 void draw_square() {
@@ -571,18 +589,74 @@ void draw_square() {
 			int pos = pos_start + (i + 1) * line_w - 2 * square_w + 2 * j;
 
 			char c = blank;
+			char color = black_green;
+			
+			if(i == 0) {
+				int len = strlen(header[Mode.m]);
+				//int len = list_path(".");
+				int l_bound = 0.5 * (square_w - len);
+				int r_bound = 0.5 * (square_w + len);
 
-			if(i == 0 || i == square_h - 1 || j == 0 || j == square_w - 1) {
+				if(j == l_bound - 1) {
+					c = '[';
+				}else if(j == r_bound) {
+					c = ']';
+				}else if(j >= l_bound && j < r_bound) {
+					c = len + '0';
+				}else {
+					c = border;
+				}
+			}else if(i == square_h - 1 || j == 0 || j == square_w - 1) {	
 				c = border;
+			}else {
+				if(i == curr_row + 1) {
+					color = white_black;
+				}
 			}
 
+			int c_color = (color << 8) | c;
+
 			__asm__ __volatile__(
-				"movb color, %%ah;"
 				"movw %%ax, (%%ebx);"
 				:
-				: "a" (c), "b" (pos)
+				: "a" (c_color), "b" (pos)
 			);
 		}
+	}
+}
+
+int list_path(char* path) {
+	struct dirent entry;
+	int count = 0;
+
+	int curr_fd = open(path, O_RDONLY);
+
+	while(++count) {
+		int len = getdents(curr_fd, &entry, 1);
+
+		if(len > 0) {
+			write(1, entry.d_name, len);
+			write(1, "\n", 1);
+		}else {
+			break;
+		}
+	}
+
+	close(curr_fd);
+
+	return count - 1;
+}
+
+void dump(char* s) {
+	int i = -1;
+
+	while(i++, *s) {
+		__asm__ __volatile__(
+			"movb black_green, %%ah;"
+			"movw %%ax, (%%ebx);"
+			:
+			: "a" (*(s++)), "b" (pos_start + 2 * i)
+		);
 	}
 }
 
