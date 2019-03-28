@@ -55,7 +55,7 @@ static unsigned char attr=0x07;
 static volatile struct {
 	unsigned int o : 1; // 0 = closed, 1 = open
 	unsigned int c : 1; // 0 = explorer, 1 = clipboard
-	unsigned int a : 1; // 0 = f1 released, 1 = f1 pressed
+	unsigned int a : 1; // 0 = f1 deactivated, 1 = f1 activated
 	unsigned int e : 1; // 0 = input disabled, 1 = input enabled
 } mode;
 
@@ -64,17 +64,22 @@ static unsigned int line_w = COLUMNS * 2;
 static unsigned int square_w = 21;
 static unsigned int square_h = 12;
 static unsigned int curr_row = 0;
+
 static volatile char wh_bl = 0xF0;
 static volatile char bl_wh = 0x0F;
 static volatile char bl_gr = 0x0A;
+
 static char border = '#';
 static char blank = ' ';
 static char br_open = '[';
 static char br_close = ']';
 static char back_sp = 8;
+
 static char header[2][20] = {"/", "clipboard"};
-static char paths[10][20] = {0};
-static char clipboard[10][20] = {0};
+static char content[2][10][20];
+
+#define PATHS 0
+#define CLIPBOARD 1
 
 void c_mode() {
 	if(!mode.o) {
@@ -94,6 +99,10 @@ void a_mode_off() {
 }
 
 void e_mode() {
+	if(!mode.c) {
+		return;
+	}
+	
 	mode.e = 1 - mode.e;
 }
 
@@ -103,6 +112,10 @@ void copy_row() {
 	}
 
 	mode.e = 0;
+	
+	char* s = content[mode.c][curr_row];
+	
+	tty_write(0, s, strlen(s));
 }
 
 void go_up() {
@@ -122,15 +135,21 @@ void go_down() {
 }
 
 void go_left() {
+	if(!mode.a) {
+		return;
+	}
 
 }
 
 void go_right() {
+	if(!mode.a) {
+		return;
+	}
 
 }
 
 void add_char(char c) {
-	char* s = clipboard[curr_row];
+	char* s = content[CLIPBOARD][curr_row];
 	int len = strlen(s);
 
 	if(c > 31 && c < 127) {
@@ -177,15 +196,11 @@ void draw_square() {
 				}
 			}else if(i == square_h - 1 || j == 0 || j == square_w - 1) {	
 				c = border;
-			}else {
-				if(i == curr_row + 1) {
-					color = wh_bl;
-				}
-				
-				char* row = paths[i - 1];
+			}else {	
+				char* row = content[PATHS][i - 1];
 
 				if(mode.c) {
-					row = clipboard[i - 1];
+					row = content[CLIPBOARD][i - 1];
 				}
 
 				int len = strlen(row);
@@ -193,7 +208,11 @@ void draw_square() {
 				int r_bound = 0.5 * (square_w + len);
 
 				if(j >= l_bound && j < r_bound) {
-					c = row[j - l_bound];
+					c = row[j - l_bound];	
+				}
+
+				if(i == curr_row + 1) {
+					color = wh_bl;
 				}
 			}
 
@@ -590,7 +609,7 @@ void con_write(struct tty_struct * tty)
 			case 0:
 				if (c>31 && c<127) {
 					// DOMACI
-					if(mode.e) {
+					if(mode.c && mode.e) {
 						add_char(c);
 					}else {
 						if (x>=columns) {
@@ -615,7 +634,7 @@ void con_write(struct tty_struct * tty)
 					del();
 				else if (c==8) {
 					// DOMACI
-					if(mode.e) {
+					if(mode.c && mode.e) {
 						add_char(c);
 					}else {
 						if (x) {
