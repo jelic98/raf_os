@@ -315,14 +315,18 @@ minus:	cmpb $1,e0
 	xorl %ebx,%ebx
 	jmp put_queue
 
-// DOMACI
+/*
+ * DOMACI
+ */
 
 do_f1_down:
 	call a_mode_on
+	call draw_square
 	ret
 
 do_f1_up:
 	call a_mode_off
+	call draw_square
 	ret
 
 do_f2:
@@ -332,9 +336,11 @@ do_f2:
 
 do_f3:
 	call e_mode
+	call draw_square
 	ret
 
 do_space:
+	call do_self
 	call copy_row
 	ret
 

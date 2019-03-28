@@ -68,6 +68,7 @@ static unsigned int curr_row = 0;
 static volatile char wh_bl = 0xF0;
 static volatile char bl_wh = 0x0F;
 static volatile char bl_gr = 0x0A;
+static volatile char bl_pi = 0x0D;
 
 static char border = '#';
 static char blank = ' ';
@@ -107,7 +108,8 @@ void e_mode() {
 }
 
 void copy_row() {
-	if(!mode.a) {
+	if(!mode.a || mode.e) {
+		dump("asd");
 		return;
 	}
 
@@ -193,15 +195,13 @@ void draw_square() {
 					c = header[mode.c][j - l_bound - 1];
 				}else {
 					c = border;
+					color = mode.a ? bl_gr : mode.e ? bl_pi : bl_wh;
 				}
 			}else if(i == square_h - 1 || j == 0 || j == square_w - 1) {	
 				c = border;
+				color = mode.a ? bl_gr : mode.e ? bl_pi : bl_wh;
 			}else {	
-				char* row = content[PATHS][i - 1];
-
-				if(mode.c) {
-					row = content[CLIPBOARD][i - 1];
-				}
+				char* row = content[mode.c][i - 1];
 
 				int len = strlen(row);
 				int l_bound = 0.5 * (square_w - len);
