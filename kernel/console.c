@@ -50,6 +50,183 @@ static unsigned char attr=0x07;
  */
 #define RESPONSE "\033[?1;2c"
 
+// DOMACI
+
+static volatile struct {
+	unsigned int o : 1; // 0 = closed, 1 = open
+	unsigned int c : 1; // 0 = explorer, 1 = clipboard
+	unsigned int a : 1; // 0 = f1 released, 1 = f1 pressed
+	unsigned int e : 1; // 0 = input disabled, 1 = input enabled
+} mode;
+
+static unsigned int pos_start = SCREEN_START;
+static unsigned int line_w = COLUMNS * 2;
+static unsigned int square_w = 21;
+static unsigned int square_h = 12;
+static unsigned int curr_row = 0;
+static volatile char wh_bl = 0xF0;
+static volatile char bl_wh = 0x0F;
+static volatile char bl_gr = 0x0A;
+static char border = '#';
+static char blank = ' ';
+static char br_open = '[';
+static char br_close = ']';
+static char back_sp = 8;
+static char header[2][20] = {"/", "clipboard"};
+static char clipboard[10][20] = {0};
+
+void c_mode() {
+	if(!mode.o) {
+		mode.o = 1;
+	}
+	
+	mode.c = 1 - mode.c;
+}
+
+void a_mode_on() {
+	mode.a = 1;
+}
+
+void a_mode_off() {
+	mode.a = 0;
+}
+
+void e_mode() {
+	mode.e = 1 - mode.e;
+}
+
+void copy_row() {
+
+}
+
+void go_up() {
+	if(!mode.a) {
+		return;
+	}
+	
+	curr_row = (--curr_row == -1) ? square_h - 3 : curr_row;
+}
+
+void go_down() {
+	if(!mode.a) {
+		return;
+	}
+
+	curr_row = (++curr_row > square_h - 3) ? 0 : curr_row;
+}
+
+void go_left() {
+
+}
+
+void go_right() {
+
+}
+
+void add_char(char c) {
+	char* s = clipboard[curr_row];
+	int len = strlen(s);
+
+	if(c > 31 && c < 127) {
+		if(len < square_w - 2) {
+			s[len] = c;
+		}
+	}else {
+		s[len - 1] = 0;
+	}
+
+	draw_square();
+}
+
+void draw_square() {
+	if(!mode.o) {
+		return;
+	}
+	
+	int i, j;
+
+	for(i = 0; i < square_h; i++) {
+		for(j = 0; j < square_w; j++) {
+			int pos = pos_start + (i + 1) * line_w - 2 * square_w + 2 * j;
+
+			char c = blank;
+			char color = bl_wh;
+			
+			if(i == 0) {
+				int len = strlen(header[mode.c]);
+				//int len = list_path(".");
+				int l_bound = 0.5 * (square_w - len) - 1;
+				int r_bound = 0.5 * (square_w + len);
+
+				if(j == l_bound - 1) {
+					c = br_open;
+				}else if(j == r_bound + 1) {
+					c = br_close;
+				}else if(j == l_bound || j == r_bound) {
+					c = blank;
+				}else if(j > l_bound && j < r_bound) {
+					c = len + '0';
+				}else {
+					c = border;
+				}
+			}else if(i == square_h - 1 || j == 0 || j == square_w - 1) {	
+				c = border;
+			}else {
+				if(i == curr_row + 1) {
+					color = wh_bl;
+				
+					int len = strlen(clipboard[curr_row]);
+					int l_bound = 0.5 * (square_w - len);
+					int r_bound = 0.5 * (square_w + len);
+
+					if(j >= l_bound && j < r_bound) {
+						c = clipboard[curr_row][j - l_bound];
+					}
+				}
+			}
+
+			__asm__ __volatile__(
+				"movw %%ax, (%%ebx);"
+				:: "a" ((color << 8) | c), "b" (pos)
+			);
+		}
+	}
+}
+
+int list_path(char* path) {
+	struct dirent entry;
+	int count = 0;
+
+	int curr_fd = open(path, O_RDONLY);
+
+	while(++count) {
+		int len = getdents(curr_fd, &entry, 1);
+
+		if(len > 0) {
+			write(1, entry.d_name, len);
+			write(1, "\n", 1);
+		}else {
+			break;
+		}
+	}
+
+	close(curr_fd);
+
+	return count - 1;
+}
+
+void dump(char* s) {
+	int i = -1;
+
+	while(i++, *s) {
+		__asm__ __volatile__(
+			"movb bl_gr, %%ah;"
+			"movw %%ax, (%%ebx);"
+			:: "a" (*(s++)), "b" (pos_start + 2 * i)
+		);
+	}
+}
+
 static inline void gotoxy(unsigned int new_x,unsigned int new_y)
 {
 	if (new_x>=columns || new_y>=lines)
@@ -400,17 +577,22 @@ void con_write(struct tty_struct * tty)
 		switch(state) {
 			case 0:
 				if (c>31 && c<127) {
-					if (x>=columns) {
-						x -= columns;
-						pos -= columns<<1;
-						lf();
-					}
-					__asm__("movb attr,%%ah\n\t"
-						"movw %%ax,%1\n\t"
-						::"a" (c),"m" (*(short *)pos)
-						/*:"ax"*/);
-					pos += 2;
-					x++;
+					// DOMACI
+					if(mode.e) {
+						add_char(c);
+					}else {
+						if (x>=columns) {
+							x -= columns;
+							pos -= columns<<1;
+							lf();
+						}
+						__asm__("movb attr,%%ah\n\t"
+							"movw %%ax,%1\n\t"
+							::"a" (c),"m" (*(short *)pos)
+							/*:"ax"*/);
+						pos += 2;
+						x++;
+					}	
 				} else if (c==27)
 					state=1;
 				else if (c==10 || c==11 || c==12)
@@ -420,9 +602,14 @@ void con_write(struct tty_struct * tty)
 				else if (c==ERASE_CHAR(tty))
 					del();
 				else if (c==8) {
-					if (x) {
-						x--;
-						pos -= 2;
+					// DOMACI
+					if(mode.e) {
+						add_char(c);
+					}else {
+						if (x) {
+							x--;
+							pos -= 2;
+						}
 					}
 				} else if (c==9) {
 					c=8-(x&7);
@@ -548,176 +735,6 @@ void con_write(struct tty_struct * tty)
 		}
 	}
 	set_cursor();
-}
-
-// DOMACI
-
-static volatile struct {
-	unsigned int o : 1; // 0 = closed, 1 = open
-	unsigned int c : 1; // 0 = explorer, 1 = clipboard
-	unsigned int a : 1; // 0 = f1 released, 1 = f1 pressed
-	unsigned int e : 1; // 0 = input disabled, 1 = input enabled
-} Mode;
-
-static unsigned int pos_start = SCREEN_START;
-static unsigned int line_w = COLUMNS * 2;
-static unsigned int square_w = 21;
-static unsigned int square_h = 12;
-static unsigned int curr_row = 0;
-static volatile char wh_bl = 0xF0;
-static volatile char bl_wh = 0x0F;
-static volatile char bl_gr = 0x0A;
-static char border = '#';
-static char blank = ' ';
-static char br_open = '[';
-static char br_close = ']';
-static char header[2][20] = {"/", "clipboard"};
-static char clipboard[10][20] = {0};
-
-void c_mode() {
-	if(!Mode.o) {
-		Mode.o = 1;
-	}
-	
-	Mode.c = 1 - Mode.c;
-}
-
-void a_mode_on() {
-	Mode.a = 1;
-}
-
-void a_mode_off() {
-	Mode.a = 0;
-}
-
-void e_mode() {
-	Mode.e = 1 - Mode.e;
-}
-
-void copy_row() {
-
-}
-
-void go_up() {
-	if(!Mode.a) {
-		return;
-	}
-	
-	curr_row = (--curr_row == -1) ? square_h - 3 : curr_row;
-}
-
-void go_down() {
-	if(!Mode.a) {
-		return;
-	}
-
-	curr_row = (++curr_row > square_h - 3) ? 0 : curr_row;
-}
-
-void go_left() {
-
-}
-
-void go_right() {
-
-}
-
-void add_clipboard(char* s) {
-	int len = strlen(s);
-	int i;
-
-	for(i = 0; i <= len; i++) {
-		clipboard[curr_row][i] = s[i];
-	}
-}
-
-void draw_square() {
-	if(!Mode.o) {
-		return;
-	}
-	
-	int i, j;
-
-	for(i = 0; i < square_h; i++) {
-		for(j = 0; j < square_w; j++) {
-			int pos = pos_start + (i + 1) * line_w - 2 * square_w + 2 * j;
-
-			char c = blank;
-			char color = bl_wh;
-			
-			if(i == 0) {
-				int len = strlen(header[Mode.c]);
-				//int len = list_path(".");
-				int l_bound = 0.5 * (square_w - len) - 1;
-				int r_bound = 0.5 * (square_w + len);
-
-				if(j == l_bound - 1) {
-					c = br_open;
-				}else if(j == r_bound + 1) {
-					c = br_close;
-				}else if(j == l_bound || j == r_bound) {
-					c = blank;
-				}else if(j > l_bound && j < r_bound) {
-					c = len + '0';
-				}else {
-					c = border;
-				}
-			}else if(i == square_h - 1 || j == 0 || j == square_w - 1) {	
-				c = border;
-			}else {
-				if(i == curr_row + 1) {
-					color = wh_bl;
-				
-					int len = strlen(clipboard[curr_row]);
-					int l_bound = 0.5 * (square_w - len);
-					int r_bound = 0.5 * (square_w + len);
-
-					if(j >= l_bound && j < r_bound) {
-						c = clipboard[curr_row][j - l_bound];
-					}
-				}
-			}
-
-			__asm__ __volatile__(
-				"movw %%ax, (%%ebx);"
-				:: "a" ((color << 8) | c), "b" (pos)
-			);
-		}
-	}
-}
-
-int list_path(char* path) {
-	struct dirent entry;
-	int count = 0;
-
-	int curr_fd = open(path, O_RDONLY);
-
-	while(++count) {
-		int len = getdents(curr_fd, &entry, 1);
-
-		if(len > 0) {
-			write(1, entry.d_name, len);
-			write(1, "\n", 1);
-		}else {
-			break;
-		}
-	}
-
-	close(curr_fd);
-
-	return count - 1;
-}
-
-void dump(char* s) {
-	int i = -1;
-
-	while(i++, *s) {
-		__asm__ __volatile__(
-			"movb bl_gr, %%ah;"
-			"movw %%ax, (%%ebx);"
-			:: "a" (*(s++)), "b" (pos_start + 2 * i)
-		);
-	}
 }
 
 /*
