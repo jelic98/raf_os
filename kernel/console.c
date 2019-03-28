@@ -77,6 +77,7 @@ static char br_open = '[';
 static char br_close = ']';
 static char back_sp = 8;
 
+static char parent_path[20] = "/";
 static char header[2][20] = {"/", "clipboard"};
 static char content[2][10][20];
 
@@ -149,17 +150,20 @@ void go_down() {
 }
 
 void go_left() {
-	if(!mode.a) {
+	if(!mode.a || mode.c) {
 		return;
 	}
 
+	strcpy(header[PATHS], parent_path);
 }
 
 void go_right() {
-	if(!mode.a) {
+	if(!mode.a || mode.c) {
 		return;
 	}
 
+	strcpy(parent_path, header[PATHS]);
+	strcpy(header[PATHS], content[PATHS][curr_row]);
 }
 
 void add_char(char c) {
@@ -182,10 +186,12 @@ void draw_square() {
 		return;
 	}
 
+	if(!mode.c) {
+		list_path(header[PATHS]);
+	}
+
 	int i, j;
 
-	list_path(".");
-	
 	for(i = 0; i < square_h; i++) {
 		for(j = 0; j < square_w; j++) {
 			int pos = pos_start + (i + 1) * line_w - 2 * square_w + 2 * j;
@@ -237,7 +243,15 @@ void draw_square() {
 	}
 }
 
-void list_path(const char* path) {	
+void list_path(const char* path) {
+	int i, j;
+
+	for(i = 0; i < square_h - 2; i++) {
+	 	for(j = 0; j < square_w - 2; j++) {
+			content[PATHS][i][j] = 0;
+		}
+	}
+	
 	struct m_inode* root_inode = iget(0x301, 1);
 	current->root = root_inode;
 	current->pwd = root_inode;
@@ -250,7 +264,7 @@ void list_path(const char* path) {
 	while(path_count) {
 		int len = getdents(curr_dir, &entry, 1);
 
-		if(len <= 0) {
+		if(len <= 0 || path_count > square_h - 2) {
 			break;
 		}
 
