@@ -73,11 +73,13 @@ static char br_open = '[';
 static char br_close = ']';
 static char back_sp = 8;
 static char header[2][20] = {"/", "clipboard"};
+static char paths[10][20] = {0};
 static char clipboard[10][20] = {0};
 
 void c_mode() {
 	if(!mode.o) {
 		mode.o = 1;
+		return;
 	}
 	
 	mode.c = 1 - mode.c;
@@ -96,7 +98,11 @@ void e_mode() {
 }
 
 void copy_row() {
+	if(!mode.a) {
+		return;
+	}
 
+	mode.e = 0;
 }
 
 void go_up() {
@@ -165,7 +171,7 @@ void draw_square() {
 				}else if(j == l_bound || j == r_bound) {
 					c = blank;
 				}else if(j > l_bound && j < r_bound) {
-					c = len + '0';
+					c = header[mode.c][j - l_bound - 1];
 				}else {
 					c = border;
 				}
@@ -174,14 +180,20 @@ void draw_square() {
 			}else {
 				if(i == curr_row + 1) {
 					color = wh_bl;
+				}
 				
-					int len = strlen(clipboard[curr_row]);
-					int l_bound = 0.5 * (square_w - len);
-					int r_bound = 0.5 * (square_w + len);
+				char* row = paths[i - 1];
 
-					if(j >= l_bound && j < r_bound) {
-						c = clipboard[curr_row][j - l_bound];
-					}
+				if(mode.c) {
+					row = clipboard[i - 1];
+				}
+
+				int len = strlen(row);
+				int l_bound = 0.5 * (square_w - len);
+				int r_bound = 0.5 * (square_w + len);
+
+				if(j >= l_bound && j < r_bound) {
+					c = row[j - l_bound];
 				}
 			}
 
