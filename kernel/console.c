@@ -64,6 +64,7 @@ static unsigned int line_w = COLUMNS * 2;
 static unsigned int square_w = 21;
 static unsigned int square_h = 12;
 static unsigned int curr_row = 0;
+static unsigned int path_count = 0;
 
 static volatile char wh_bl = 0xF0;
 static volatile char bl_wh = 0x0F;
@@ -109,7 +110,6 @@ void e_mode() {
 
 void copy_row() {
 	if(!mode.a || mode.e) {
-		dump("asd");
 		return;
 	}
 
@@ -125,15 +125,27 @@ void go_up() {
 		return;
 	}
 	
-	curr_row = (--curr_row == -1) ? square_h - 3 : curr_row;
+	int limit = square_h - 3;
+
+	if(!mode.c) {
+		limit = path_count - 2;
+	}
+
+	curr_row = (--curr_row == -1) ? limit : curr_row;
 }
 
 void go_down() {
 	if(!mode.a) {
 		return;
 	}
+	
+	int limit = square_h - 3;
 
-	curr_row = (++curr_row > square_h - 3) ? 0 : curr_row;
+	if(!mode.c) {
+		limit = path_count - 2;
+	}
+
+	curr_row = (++curr_row > limit) ? 0 : curr_row;
 }
 
 void go_left() {
@@ -169,9 +181,11 @@ void draw_square() {
 	if(!mode.o) {
 		return;
 	}
-	
+
 	int i, j;
 
+	list_path(".");
+	
 	for(i = 0; i < square_h; i++) {
 		for(j = 0; j < square_w; j++) {
 			int pos = pos_start + (i + 1) * line_w - 2 * square_w + 2 * j;
@@ -181,7 +195,6 @@ void draw_square() {
 			
 			if(i == 0) {
 				int len = strlen(header[mode.c]);
-				//int len = list_path(".");
 				int l_bound = 0.5 * (square_w - len) - 1;
 				int r_bound = 0.5 * (square_w + len);
 
@@ -224,26 +237,37 @@ void draw_square() {
 	}
 }
 
-int list_path(char* path) {
+void list_path(const char* path) {	
+	struct m_inode* root_inode = iget(0x301, 1);
+	current->root = root_inode;
+	current->pwd = root_inode;
+
 	struct dirent entry;
-	int count = 0;
+	int curr_dir = open(path, O_RDONLY);
 
-	int curr_fd = open(path, O_RDONLY);
+	path_count = 1;
 
-	while(++count) {
-		int len = getdents(curr_fd, &entry, 1);
+	while(path_count) {
+		int len = getdents(curr_dir, &entry, 1);
 
-		if(len > 0) {
-			write(1, entry.d_name, len);
-			write(1, "\n", 1);
-		}else {
+		if(len <= 0) {
 			break;
 		}
+
+		char* name = entry.d_name;
+		
+		if(*name == '.') {
+			continue;
+		}
+	
+		strcpy(content[PATHS][path_count++ - 1], name);
 	}
 
-	close(curr_fd);
+	close(curr_dir);	
 
-	return count - 1;
+	iput(root_inode);
+	current->root = NULL;
+	current->pwd = NULL;
 }
 
 void dump(char* s) {
