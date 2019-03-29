@@ -57,6 +57,7 @@ static volatile struct {
 	unsigned int c : 1; // 0 = explorer, 1 = clipboard
 	unsigned int a : 1; // 0 = f1 deactivated, 1 = f1 activated
 	unsigned int e : 1; // 0 = input disabled, 1 = input enabled
+	unsigned int x : 1; // 0 = no exception, 1 = exception
 } mode;
 
 static unsigned int pos_start = SCREEN_START;
@@ -65,9 +66,11 @@ static unsigned int square_w = 21;
 static unsigned int square_h = 12;
 static unsigned int curr_row = 0;
 static unsigned int path_count = 0;
+static unsigned int path_level = 0;
 
 static volatile char bl_gr = 0x0A;
 static volatile char bl_cy = 0x0B;
+static volatile char bl_re = 0x0C;
 static volatile char bl_pi = 0x0D;
 static volatile char bl_ye = 0x0E;
 static volatile char bl_wh = 0x0F;
@@ -79,12 +82,16 @@ static char br_open = '[';
 static char br_close = ']';
 static char back_sp = 8;
 
-static char parent_path[20] = "/";
+static char parent_paths[20][20] = {"/"};
 static char header[2][20] = {"/", "clipboard"};
 static char content[2][10][20];
 
 #define PATHS 0
 #define CLIPBOARD 1
+
+char color_path(const char* path, const char* name);
+int size_path(const char* path, const char* name);
+void abs_path(const char* path, const char* name, char* abs);
 
 void c_mode() {
 	if(!mode.o) {
@@ -112,7 +119,7 @@ void e_mode() {
 }
 
 void copy_row() {
-	if(!mode.a || mode.e) {
+	if(!mode.a || mode.e || mode.x) {
 		return;
 	}
 
@@ -120,6 +127,14 @@ void copy_row() {
 	
 	char* s = content[mode.c][curr_row];
 	
+	if(!mode.c) {
+		char* tmp[256] = {0};
+
+		abs_path(header[PATHS], s, tmp);
+
+		strcpy(s, tmp);
+	}
+
 	tty_write(0, s, strlen(s));
 }
 
@@ -152,25 +167,33 @@ void go_down() {
 }
 
 void go_left() {
-	if(!mode.a || mode.c) {
+	if(!mode.a || mode.c || !path_level) {
 		return;
 	}
 
-	strcpy(header[PATHS], parent_path);
+	strcpy(header[PATHS], parent_paths[--path_level]);
+	mode.x = 0;
 }
 
 void go_right() {
-	if(!mode.a || mode.c) {
+	if(!mode.a || mode.c || mode.x) {
 		return;
 	}
 
-	strcpy(parent_path, header[PATHS]);
+	strcpy(parent_paths[path_level++], header[PATHS]);
 	
-	if(header[PATHS][strlen(header[PATHS]) - 1] != '/') {
-		strcat(header[PATHS], "/");
+	if(color_path(header[PATHS], content[PATHS][curr_row]) != bl_cy 
+		|| size_path(header[PATHS], content[PATHS][curr_row]) < 1) {
+		strcpy(header[PATHS], "ERROR");
+		mode.x = 1;
+	}else {
+		if(header[PATHS][strlen(header[PATHS]) - 1] != '/') {
+			strcat(header[PATHS], "/");
+		}
+	
+		strcat(header[PATHS], content[PATHS][curr_row]);
+		mode.x = 0;
 	}
-	
-	strcat(header[PATHS], content[PATHS][curr_row]);
 	
 	curr_row = 0;
 }
@@ -190,22 +213,48 @@ void add_char(char c) {
 	draw_square();
 }
 
-char color_path(const char* path, const char* name) {
-	char abspath[128] = {0};
-	strcat(abspath, path);
+void abs_path(const char* path, const char* name, char* abs) {
+	strcat(abs, path);
 	
 	if(path[strlen(path) - 1] != '/') {
-		strcat(abspath, "/");
+		strcat(abs, "/");
 	}
 	
-	strcat(abspath, name);
+	strcat(abs, name);
+}
+
+int size_path(const char* path, const char* name) {
+	char abs[256] = {0};
+	abs_path(path, name, abs);
+
+	struct m_inode *dir_inode;
+	struct m_inode *root_inode;
+
+	root_inode = iget(0x301, 1);
+	current->root = root_inode;
+	current->pwd = root_inode;
+
+	dir_inode = namei(abs);
+	int size = dir_inode->i_size;
+
+	iput(root_inode);
+	iput(dir_inode);
+	current->root = NULL;
+	current->pwd = NULL;
+
+	return size;
+}
+
+char color_path(const char* path, const char* name) {
+	char abs[256] = {0};
+	abs_path(path, name, abs);
 
 	struct m_inode* root_inode = iget(0x301, 1);
 	current->root = root_inode;
 	current->pwd = root_inode;
 
 	struct stat d_stat;
-	sys_stat(abspath, &d_stat);
+	sys_stat(abs, &d_stat);
 
 	iput(root_inode);
 	current->root = NULL;
@@ -296,11 +345,11 @@ void draw_square() {
 					c = header[mode.c][j - l_bound - 1];
 				}else {
 					c = border;
-					color = mode.a ? bl_gr : mode.e ? bl_pi : bl_wh;
+					color = mode.a ? bl_gr : mode.e ? bl_pi : mode.x ? bl_re : bl_wh;
 				}
 			}else if(i == square_h - 1 || j == 0 || j == square_w - 1) {	
 				c = border;
-				color = mode.a ? bl_gr : mode.e ? bl_pi : bl_wh;
+				color = mode.a ? bl_gr : mode.e ? bl_pi : mode.x ? bl_re : bl_wh;
 			}else {	
 				char* row = content[mode.c][i - 1];
 
