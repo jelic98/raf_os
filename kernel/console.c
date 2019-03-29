@@ -20,11 +20,6 @@
 #include <asm/io.h>
 #include <asm/system.h>
 
-#include <string.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <fcntl.h>
-
 #define SCREEN_START 0xb8000
 #define SCREEN_END   0xc0000
 #define LINES 25
@@ -52,6 +47,11 @@ static unsigned char attr=0x07;
 
 // DOMACI
 
+#include <string.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <fcntl.h>
+
 static volatile struct {
 	unsigned int o : 1; // 0 = closed, 1 = open
 	unsigned int c : 1; // 0 = explorer, 1 = clipboard
@@ -66,10 +66,12 @@ static unsigned int square_h = 12;
 static unsigned int curr_row = 0;
 static unsigned int path_count = 0;
 
-static volatile char wh_bl = 0xF0;
-static volatile char bl_wh = 0x0F;
 static volatile char bl_gr = 0x0A;
+static volatile char bl_cy = 0x0B;
 static volatile char bl_pi = 0x0D;
+static volatile char bl_ye = 0x0E;
+static volatile char bl_wh = 0x0F;
+static volatile char wh_bl = 0xF0;
 
 static char border = '#';
 static char blank = ' ';
@@ -163,7 +165,14 @@ void go_right() {
 	}
 
 	strcpy(parent_path, header[PATHS]);
-	strcpy(header[PATHS], content[PATHS][curr_row]);
+	
+	if(header[PATHS][strlen(header[PATHS]) - 1] != '/') {
+		strcat(header[PATHS], "/");
+	}
+	
+	strcat(header[PATHS], content[PATHS][curr_row]);
+	
+	curr_row = 0;
 }
 
 void add_char(char c) {
@@ -179,6 +188,79 @@ void add_char(char c) {
 	}
 
 	draw_square();
+}
+
+char color_path(const char* path, const char* name) {
+	char abspath[128] = {0};
+	strcat(abspath, path);
+	
+	if(path[strlen(path) - 1] != '/') {
+		strcat(abspath, "/");
+	}
+	
+	strcat(abspath, name);
+
+	struct m_inode* root_inode = iget(0x301, 1);
+	current->root = root_inode;
+	current->pwd = root_inode;
+
+	struct stat d_stat;
+	sys_stat(abspath, &d_stat);
+
+	iput(root_inode);
+	current->root = NULL;
+	current->pwd = NULL;
+	
+	if((d_stat.st_mode & S_IFMT) == S_IFDIR) {
+		return bl_cy;
+	}else if((d_stat.st_mode & S_IFMT) == S_IFCHR) {
+		return bl_ye;
+	}else if(d_stat.st_mode & S_IXUSR) {
+		return bl_gr;
+	}else {
+		return bl_wh;
+	}
+}
+
+void list_path(const char* path) {
+	int i, j;
+
+	for(i = 0; i < square_h - 2; i++) {
+	 	for(j = 0; j < square_w - 2; j++) {
+			content[PATHS][i][j] = 0;
+		}
+	}
+	
+	struct m_inode* root_inode = iget(0x301, 1);
+	current->root = root_inode;
+	current->pwd = root_inode;
+
+	struct dirent entry;
+	int curr_dir = open(path, O_RDONLY);
+
+	path_count = 1;
+
+	while(path_count) {
+		int len = getdents(curr_dir, &entry, 1);
+
+		if(len <= 0 || path_count > square_h - 2) {
+			break;
+		}
+
+		char* name = entry.d_name;
+		
+		if(*name == '.') {
+			continue;
+		}
+
+		strcpy(content[PATHS][path_count++ - 1], name);
+	}
+
+	close(curr_dir);	
+
+	iput(root_inode);
+	current->root = NULL;
+	current->pwd = NULL;
 }
 
 void draw_square() {
@@ -222,6 +304,10 @@ void draw_square() {
 			}else {	
 				char* row = content[mode.c][i - 1];
 
+				if(!mode.c) {
+					color = color_path(header[PATHS], row);
+				}
+
 				int len = strlen(row);
 				int l_bound = 0.5 * (square_w - len);
 				int r_bound = 0.5 * (square_w + len);
@@ -240,59 +326,6 @@ void draw_square() {
 				:: "a" ((color << 8) | c), "b" (pos)
 			);
 		}
-	}
-}
-
-void list_path(const char* path) {
-	int i, j;
-
-	for(i = 0; i < square_h - 2; i++) {
-	 	for(j = 0; j < square_w - 2; j++) {
-			content[PATHS][i][j] = 0;
-		}
-	}
-	
-	struct m_inode* root_inode = iget(0x301, 1);
-	current->root = root_inode;
-	current->pwd = root_inode;
-
-	struct dirent entry;
-	int curr_dir = open(path, O_RDONLY);
-
-	path_count = 1;
-
-	while(path_count) {
-		int len = getdents(curr_dir, &entry, 1);
-
-		if(len <= 0 || path_count > square_h - 2) {
-			break;
-		}
-
-		char* name = entry.d_name;
-		
-		if(*name == '.') {
-			continue;
-		}
-	
-		strcpy(content[PATHS][path_count++ - 1], name);
-	}
-
-	close(curr_dir);	
-
-	iput(root_inode);
-	current->root = NULL;
-	current->pwd = NULL;
-}
-
-void dump(char* s) {
-	int i = -1;
-
-	while(i++, *s) {
-		__asm__ __volatile__(
-			"movb bl_gr, %%ah;"
-			"movw %%ax, (%%ebx);"
-			:: "a" (*(s++)), "b" (pos_start + 2 * i)
-		);
 	}
 }
 
