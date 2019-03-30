@@ -51,14 +51,7 @@ static unsigned char attr=0x07;
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
-
-static volatile struct {
-	unsigned int o : 1; // 0 = closed, 1 = open
-	unsigned int c : 1; // 0 = explorer, 1 = clipboard
-	unsigned int a : 1; // 0 = f1 deactivated, 1 = f1 activated
-	unsigned int e : 1; // 0 = input disabled, 1 = input enabled
-	unsigned int x : 1; // 0 = no exception, 1 = exception
-} mode;
+#include "mode.h"
 
 static unsigned int line_w = COLUMNS * 2;
 static unsigned int square_w = 21;
@@ -67,13 +60,13 @@ static unsigned int curr_row = 0;
 static unsigned int path_count = 0;
 static unsigned int path_level = 0;
 
-static volatile char bl_gr = 0x0A;
-static volatile char bl_cy = 0x0B;
-static volatile char bl_re = 0x0C;
-static volatile char bl_pi = 0x0D;
-static volatile char bl_ye = 0x0E;
-static volatile char bl_wh = 0x0F;
-static volatile char wh_bl = 0xF0;
+static char bl_gr = 0x0A;
+static char bl_cy = 0x0B;
+static char bl_re = 0x0C;
+static char bl_pi = 0x0D;
+static char bl_ye = 0x0E;
+static char bl_wh = 0x0F;
+static char wh_bl = 0xF0;
 
 static char border = '#';
 static char blank = ' ';
@@ -100,6 +93,9 @@ void c_mode() {
 	curr_row = 0;
 	
 	mode.c = 1 - mode.c;
+
+	mode.e = 0;
+	mode.x = 0;
 }
 
 void a_mode_on() {
@@ -121,8 +117,7 @@ void e_mode() {
 void putc(char c) {
 	__asm__ __volatile__ (
 		"call put_queue;"
-		: "=a" (c)
-		: "a" (c), "b" (0)
+		:: "a" (c), "b" (0)
 	);
 }
 
@@ -132,19 +127,35 @@ void copy_row() {
 		return;
 	}
 
-	mode.e = 0;
+	char s[256];
 	
-	char* s = content[mode.c][curr_row];
-	
-	if(!mode.c) {
-		char* tmp[256] = {0};
-
-		abs_path(header[PATHS], s, tmp);
-
-		s = tmp;
+	if(mode.c) {
+		strcpy(s, content[mode.c][curr_row]);
+	}else {
+		abs_path(header[PATHS], content[mode.c][curr_row], s);
 	}
+
+	char* ps = s;
+
+	while(putc(*(ps++)), *ps);
 	
-	while(putc(*(s++)), *s);
+	mode.e = 0;
+	mode.d = 1;
+}
+
+void add_char(char c) {	
+	char* s = content[CLIPBOARD][curr_row];
+	int len = strlen(s);
+
+	if(c == back_sp) {
+		s[len - 1] = 0;
+	}else if(c > 31 && c < 127) {
+		if(len < square_w - 2) {
+			s[len] = c;	
+		}
+	}
+
+	draw_square();
 }
 
 int go_up() {
@@ -220,21 +231,6 @@ int go_right() {
 	curr_row = 0;
 
 	return 0;
-}
-
-void add_char(char c) {
-	char* s = content[CLIPBOARD][curr_row];
-	int len = strlen(s);
-
-	if(c > 31 && c < 127) {
-		if(len < square_w - 2) {
-			s[len] = c;
-		}
-	}else if(c == back_sp) {
-		s[len - 1] = 0;
-	}
-
-	draw_square();
 }
 
 void abs_path(const char* path, const char* name, char* abs) {
@@ -727,22 +723,17 @@ void con_write(struct tty_struct * tty)
 		switch(state) {
 			case 0:
 				if (c>31 && c<127) {
-					// DOMACI
-					if(mode.c && mode.e) {
-						add_char(c);
-					}else {
-						if (x>=columns) {
-							x -= columns;
-							pos -= columns<<1;
-							lf();
-						}
-						__asm__("movb attr,%%ah\n\t"
-							"movw %%ax,%1\n\t"
-							::"a" (c),"m" (*(short *)pos)
-							/*:"ax"*/);
-						pos += 2;
-						x++;
-					}	
+					if (x>=columns) {
+						x -= columns;
+						pos -= columns<<1;
+						lf();
+					}
+					__asm__("movb attr,%%ah\n\t"
+						"movw %%ax,%1\n\t"
+						::"a" (c),"m" (*(short *)pos)
+						/*:"ax"*/);
+					pos += 2;
+					x++;
 				} else if (c==27)
 					state=1;
 				else if (c==10 || c==11 || c==12)
@@ -752,14 +743,9 @@ void con_write(struct tty_struct * tty)
 				else if (c==ERASE_CHAR(tty))
 					del();
 				else if (c==8) {
-					// DOMACI
-					if(mode.c && mode.e) {
-						add_char(c);
-					}else {
-						if (x) {
-							x--;
-							pos -= 2;
-						}
+					if (x) {
+						x--;
+						pos -= 2;
 					}
 				} else if (c==9) {
 					c=8-(x&7);

@@ -37,6 +37,9 @@
 #define O_NLRET(tty)	_O_FLAG((tty),ONLRET)
 #define O_LCUC(tty)	_O_FLAG((tty),OLCUC)
 
+// DOMACI
+#include "mode.h"
+
 struct tty_struct tty_table[] = {
 	{
 		{0,
@@ -132,6 +135,13 @@ void copy_to_cooked(struct tty_struct * tty)
 
 	while (!EMPTY(tty->read_q) && !FULL(tty->secondary)) {
 		GETCH(tty->read_q,c);
+	
+		// DOMACI
+		if(mode.c && mode.e) {
+			add_char(c == ERASE_CHAR(tty) ? 8 : c);	
+			return;	
+		}
+
 		if (c==13)
 			if (I_CRNL(tty))
 				c=10;
@@ -143,7 +153,7 @@ void copy_to_cooked(struct tty_struct * tty)
 		if (I_UCLC(tty))
 			c=tolower(c);
 		if (L_CANON(tty)) {
-			if (c==ERASE_CHAR(tty)) {
+			if (c==ERASE_CHAR(tty)) {	
 				if (EMPTY(tty->secondary) ||
 				   (c=LAST(tty->secondary))==10 ||
 				   c==EOF_CHAR(tty))
