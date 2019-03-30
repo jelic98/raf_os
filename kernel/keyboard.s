@@ -6,6 +6,11 @@
 .globl keyboard_interrupt
 
 /*
+ * DOMACI
+ */
+.globl put_queue
+
+/*
  * these are for the keyboard read functions
  */
 size	= 1024		/* must be a power of two ! And MUST be the same
@@ -340,28 +345,48 @@ do_f3:
 	ret
 
 do_space:
-	call do_self
-	call copy_row
-	ret
+	call copy_row	
+	call draw_square
+	ret 
 
 do_up:
+	pushl %eax
 	call go_up
-	call draw_square
+	cmpl $0x0, %eax
+	popl %eax
+	je 1f
+	call cursor
+1:	call draw_square
 	ret
 
 do_down:
+	pushl %eax
 	call go_down
-	call draw_square
+	cmpl $0x0, %eax
+	popl %eax
+	je 1f
+	call cursor
+1:	call draw_square
 	ret
 
 do_left:
+	pushl %eax
 	call go_left
-	call draw_square
+	cmpl $0x0, %eax
+	popl %eax
+	je 1f
+	call cursor
+1:	call draw_square
 	ret
 	
 do_right:
+	pushl %eax
 	call go_right
-	call draw_square
+	cmpl $0x0, %eax
+	popl %eax
+	je 1f
+	call cursor
+1:	call draw_square
 	ret
 
 /*

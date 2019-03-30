@@ -60,7 +60,6 @@ static volatile struct {
 	unsigned int x : 1; // 0 = no exception, 1 = exception
 } mode;
 
-static unsigned int pos_start = SCREEN_START;
 static unsigned int line_w = COLUMNS * 2;
 static unsigned int square_w = 21;
 static unsigned int square_h = 12;
@@ -90,7 +89,6 @@ static char content[2][10][20];
 #define CLIPBOARD 1
 
 char color_path(const char* path, const char* name);
-int size_path(const char* path, const char* name);
 void abs_path(const char* path, const char* name, char* abs);
 
 void c_mode() {
@@ -98,6 +96,8 @@ void c_mode() {
 		mode.o = 1;
 		return;
 	}
+
+	curr_row = 0;
 	
 	mode.c = 1 - mode.c;
 }
@@ -118,8 +118,17 @@ void e_mode() {
 	mode.e = 1 - mode.e;
 }
 
+void putc(char c) {
+	__asm__ __volatile__ (
+		"call put_queue;"
+		: "=a" (c)
+		: "a" (c), "b" (0)
+	);
+}
+
 void copy_row() {
 	if(!mode.a || mode.e || mode.x) {
+		putc(' ');
 		return;
 	}
 
@@ -132,15 +141,15 @@ void copy_row() {
 
 		abs_path(header[PATHS], s, tmp);
 
-		strcpy(s, tmp);
+		s = tmp;
 	}
-
-	tty_write(0, s, strlen(s));
+	
+	while(putc(*(s++)), *s);
 }
 
-void go_up() {
+int go_up() {
 	if(!mode.a) {
-		return;
+		return 1;
 	}
 	
 	int limit = square_h - 3;
@@ -150,11 +159,13 @@ void go_up() {
 	}
 
 	curr_row = (--curr_row == -1) ? limit : curr_row;
+
+	return 0;
 }
 
-void go_down() {
+int go_down() {
 	if(!mode.a) {
-		return;
+		return 1;
 	}
 	
 	int limit = square_h - 3;
@@ -164,26 +175,37 @@ void go_down() {
 	}
 
 	curr_row = (++curr_row > limit) ? 0 : curr_row;
+	
+	return 0;
 }
 
-void go_left() {
-	if(!mode.a || mode.c || !path_level) {
-		return;
+int go_left() {
+	if(!mode.a) {
+		return 1;
+	}
+	
+	if(mode.c || !path_level) {
+		return 0;
 	}
 
 	strcpy(header[PATHS], parent_paths[--path_level]);
 	mode.x = 0;
+	
+	return 0;
 }
 
-void go_right() {
-	if(!mode.a || mode.c || mode.x) {
-		return;
+int go_right() {
+	if(!mode.a) {
+		return 1;
+	}
+
+	if(mode.c || mode.x) {
+		return 0;
 	}
 
 	strcpy(parent_paths[path_level++], header[PATHS]);
-	
-	if(color_path(header[PATHS], content[PATHS][curr_row]) != bl_cy 
-		|| size_path(header[PATHS], content[PATHS][curr_row]) < 1) {
+
+	if(color_path(header[PATHS], content[PATHS][curr_row]) != bl_cy) {
 		strcpy(header[PATHS], "ERROR");
 		mode.x = 1;
 	}else {
@@ -196,6 +218,8 @@ void go_right() {
 	}
 	
 	curr_row = 0;
+
+	return 0;
 }
 
 void add_char(char c) {
@@ -206,7 +230,7 @@ void add_char(char c) {
 		if(len < square_w - 2) {
 			s[len] = c;
 		}
-	}else {
+	}else if(c == back_sp) {
 		s[len - 1] = 0;
 	}
 
@@ -214,48 +238,26 @@ void add_char(char c) {
 }
 
 void abs_path(const char* path, const char* name, char* abs) {
-	strcat(abs, path);
+	strcpy(abs, path);
 	
 	if(path[strlen(path) - 1] != '/') {
-		strcat(abs, "/");
+		abs[strlen(abs)] = '/';
 	}
 	
 	strcat(abs, name);
 }
 
-int size_path(const char* path, const char* name) {
-	char abs[256] = {0};
-	abs_path(path, name, abs);
-
-	struct m_inode *dir_inode;
-	struct m_inode *root_inode;
-
-	root_inode = iget(0x301, 1);
-	current->root = root_inode;
-	current->pwd = root_inode;
-
-	dir_inode = namei(abs);
-	int size = dir_inode->i_size;
-
-	iput(root_inode);
-	iput(dir_inode);
-	current->root = NULL;
-	current->pwd = NULL;
-
-	return size;
-}
-
 char color_path(const char* path, const char* name) {
 	char abs[256] = {0};
 	abs_path(path, name, abs);
-
+	
 	struct m_inode* root_inode = iget(0x301, 1);
 	current->root = root_inode;
 	current->pwd = root_inode;
-
+	
 	struct stat d_stat;
 	sys_stat(abs, &d_stat);
-
+	
 	iput(root_inode);
 	current->root = NULL;
 	current->pwd = NULL;
@@ -325,7 +327,7 @@ void draw_square() {
 
 	for(i = 0; i < square_h; i++) {
 		for(j = 0; j < square_w; j++) {
-			int pos = pos_start + (i + 1) * line_w - 2 * square_w + 2 * j;
+			int pos = origin + (i + 1) * line_w - 2 * square_w + 2 * j;
 
 			char c = blank;
 			char color = bl_wh;
@@ -369,11 +371,8 @@ void draw_square() {
 					color = wh_bl;
 				}
 			}
-
-			__asm__ __volatile__(
-				"movw %%ax, (%%ebx);"
-				:: "a" ((color << 8) | c), "b" (pos)
-			);
+			
+			*(short*) pos = ((char) color << 8) | c;
 		}
 	}
 }
