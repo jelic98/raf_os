@@ -135,8 +135,11 @@
 #define __NR_fstat64	197
 #define __NR_getdents64	220
 #define __NR_fcntl64	221
-#define __NR_vstr	240
-
+#define __NR_keyset	240
+#define __NR_keyclear	241
+#define __NR_keygen	242
+#define __NR_encr	243
+#define __NR_decr	244
 
 #define _syscall0(type,name) \
 type name(void) \
@@ -258,6 +261,10 @@ pid_t getpgrp(void);
 pid_t setsid(void);
 int getdents(unsigned int fd, struct dirent *dirp, unsigned int count);
 int getdents64(unsigned int fd, struct dirent64 *dirp, unsigned int count);
-int vstr(char* buff, char color, int pos);
+int keyset(char* key);
+int keyclear();
+int keygen(int level);
+int encr(char* file);
+int decr(char* file);
 
 #endif

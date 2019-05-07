@@ -7,6 +7,13 @@
 #include <sys/times.h>
 #include <sys/utsname.h>
 
+// PROJEKAT
+#include "../include/string.h"
+#define ASCII_FIRST 32
+#define ASCII_LAST 126
+#define keylen(x) (1 << (x))
+#define keylenok(x) ((x != 0) && ((x & (x - 1)) == 0))
+
 int sys_ftime()
 {
 	return -ENOSYS;
@@ -235,12 +242,60 @@ int sys_null(int nr)
 	return -ENOSYS;
 }
 
-int sys_vstr(char* buff, char color, int pos) {
-	int curr = pos - 2;
-	char c, *s = buff;
+// PROJEKAT
 
-	while(curr += 2, (c = get_fs_byte(s++)))
-		*(short*) curr = ((char) color << 8) | c;
+int sys_keyset(char* key) {
+	int len = strlen(key);
+	
+	return len;
 
-	return curr;
+	if(!keylenok(len)) {
+		return -EKEYLEN;
+	}
+
+	return 0;
+}
+
+int sys_keyclear() {
+
+	return 0;
+}
+
+int sys_keygen(int level) {
+	int lvls[] = {1, 2, 3};
+	int lvlsi = sizeof(lvls) / sizeof(int);
+	int lvlok = 0;
+
+	while(lvlsi >= 0) {
+		if(level == lvls[lvlsi]) {
+			lvlok = 1;
+			break;
+		}
+	}
+
+	if(!lvlok) {
+		return -EKEYLVL;
+	}
+	
+	char* key;
+	int len = keylen(level);	
+	int i;
+
+    for(i = 0; i < len; i++) {
+        //key[i] = (rand() % (ASCII_LAST - ASCII_FIRST + 1)) + ASCII_FIRST;
+	}
+
+    key[len] = 0;
+
+	return 0;
+}
+
+int sys_encr(char* file) {
+
+	return 0;
+}
+
+int sys_decr(char* file) {
+
+	return 0;
 }

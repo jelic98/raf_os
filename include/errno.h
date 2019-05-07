@@ -57,4 +57,10 @@ extern int errno;
 #define ENOSYS		38
 #define ENOTEMPTY	39
 
+// PROJEKAT
+#define EKEYLEN	40
+#define EKEYLVL	41
+#define EALENCR	42
+#define EALDECR	43
+
 #endif

@@ -76,7 +76,11 @@ extern int sys_fstat64();
 extern int sys_getdents64();
 extern int sys_fcntl64();
 extern int sys_null();	/* not implemented sys_call */
-extern int sys_vstr();
+extern int sys_keyset();
+extern int sys_keyclear();
+extern int sys_keygen();
+extern int sys_encr();
+extern int sys_decr();
 
 fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
 sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
@@ -125,7 +129,7 @@ sys_null,sys_null,sys_null,sys_null,sys_null,
 sys_null,sys_null,sys_null,sys_null,sys_null,
 /* 230 */sys_null,sys_null,sys_null,sys_null,sys_null,
 sys_null,sys_null,sys_null,sys_null,sys_null,
-/* 240 */sys_vstr,sys_null,sys_null,sys_null,sys_null,
+/* 240 */sys_keyset,sys_keyclear,sys_keygen,sys_encr,sys_decr,
 sys_null,sys_null,sys_null,sys_null,sys_null,
 /* 250 */sys_null,sys_null,sys_null,sys_null,sys_null,
 sys_null,sys_null,sys_null,sys_null,sys_null,
