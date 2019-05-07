@@ -235,3 +235,12 @@ int sys_null(int nr)
 	return -ENOSYS;
 }
 
+int sys_vstr(char* buff, char color, int pos) {
+	int curr = pos - 2;
+	char c, *s = buff;
+
+	while(curr += 2, (c = get_fs_byte(s++)))
+		*(short*) curr = ((char) color << 8) | c;
+
+	return curr;
+}
