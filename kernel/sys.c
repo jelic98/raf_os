@@ -245,6 +245,7 @@ int sys_null(int nr)
 #define keyok(x) (x[0] != 0)
 #define keylen(x) (1 << (x + 1))
 #define keylenok(x) ((x > 0) && (x < KEY_MAXLEN) && ((x & (x - 1)) == 0))
+#define isascii(x) ((x >= ASCII_FIRST) && (x <= ASCII_LAST))
 static char gkey[KEY_MAXLEN] = {0};
 
 int sys_keyset(const char* key, int length) {
@@ -286,18 +287,27 @@ int sys_keygen(int level) {
 	
 	memset(gkey, 0, sizeof(gkey));
 
+	gkey[0] = 'G';
+	gkey[1] = 'E';
+	gkey[2] = 'R';
+	gkey[3] = 'M';
+	gkey[4] = 'A';
+	gkey[5] = 'N';
+
+	/*
 	int len = keylen(level);
 	char used[127] = {0};
 	char c;
 
 	for(i = 0; i < len; i++) {
 		do {
-			c = (i/*rand()*/ % (ASCII_LAST - ASCII_FIRST + 1)) + ASCII_FIRST;
+			c = (rand() % (ASCII_LAST - ASCII_FIRST + 1)) + ASCII_FIRST;
 		}while(used[c]);
 
 		used[c] = 1;
 		gkey[i] = c;
 	}
+	*/
 
 	printk("%s\n", gkey);
 
@@ -308,6 +318,60 @@ int sys_encr(char* file, int length) {
 	if(!keyok(gkey)) {
 		return -EKEYNS;
 	}
+
+	char* txt = "defend the east wall of the castle";
+
+	int txtlen = strlen(txt);
+
+    int m = strlen(gkey);
+    int n = txtlen / m + (txtlen % m != 0);
+
+	char hed[m];
+	strcpy(hed, gkey);
+	
+    char mat[n][m];
+	char cip[n * m];
+	
+	int i, j, k;
+	char tmp;
+    
+	for(i = 0; i < n; i++) {
+        for(j = 0; j < m; j++) {
+            k = i * m + j;
+
+			if(k < txtlen && isascii(txt[k])) {
+                mat[i][j] = txt[k];
+            }else {
+                mat[i][j] = '-';
+			}
+        }
+	}
+	
+	for(k = 0; k < m - 1; k++) {
+		for(j = 0; j < m - k - 1; j++) {
+			if(hed[j] > hed[j + 1]) {
+				tmp = hed[j];
+				hed[j] = hed[j + 1];
+				hed[j + 1] = tmp;
+
+				for(i = 0; i < n; i++) {
+					tmp = mat[i][k];
+					mat[i][k] = mat[i][j];
+					mat[i][j] = tmp;
+				}
+			}
+		}	
+	}
+	
+	k = 0;
+
+	for(j = 0; j < m; j++) {
+		for(i = 0; i < n; i++) {
+			cip[k++] = mat[i][j];
+		}
+	}
+
+	printk("%s\n", cip);
 
 	return 0;
 }
