@@ -10,24 +10,6 @@
 typedef unsigned int size_t;
 #endif
 
-// PROJEKAT
-// TODO Print custom errors
-static char* errtxt[] = {
-	/* 0 */ 	"NULL","NULL","NULL","NULL","NULL",
-	/* 5 */ 	"NULL","NULL","NULL","NULL","NULL",
-	/* 10 */ 	"NULL","NULL","NULL","NULL","NULL",
-	/* 15 */ 	"NULL","NULL","NULL","NULL","NULL",
-	/* 20 */ 	"NULL","NULL","NULL","NULL","NULL",
-	/* 25 */ 	"NULL","NULL","NULL","NULL","NULL",
-	/* 30 */ 	"NULL","NULL","NULL","NULL","NULL",
-	/* 35 */ 	"NULL","NULL","NULL","NULL","NULL",
-	/* 40 */ 	"Duzina kljuca nije stepen dvojke",
-	/* 41 */	"Nivo kljuca nije 1,2,3",
-	/* 42 */	"Fajl je vec enkriptovan",
-	/* 43 */	"Fajl je vec dekriptovan",
-	/* 44 */	"NULL"
-};
-
 extern char* strerror(int errno);
 
 /*

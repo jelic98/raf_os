@@ -8,7 +8,7 @@
 #include <sys/utsname.h>
 
 // PROJEKAT
-#include "../include/string.h"
+#define KEY_MAXLEN 513
 #define ASCII_FIRST 32
 #define ASCII_LAST 126
 #define keylen(x) (1 << (x))
@@ -244,12 +244,8 @@ int sys_null(int nr)
 
 // PROJEKAT
 
-int sys_keyset(char* key) {
-	int len = strlen(key);
-	
-	return len;
-
-	if(!keylenok(len)) {
+int sys_keyset(char* key, int length) {
+	if(!keylenok(length)) {
 		return -EKEYLEN;
 	}
 
@@ -262,23 +258,9 @@ int sys_keyclear() {
 }
 
 int sys_keygen(int level) {
-	int lvls[] = {1, 2, 3};
-	int lvlsi = sizeof(lvls) / sizeof(int);
-	int lvlok = 0;
-
-	while(lvlsi >= 0) {
-		if(level == lvls[lvlsi]) {
-			lvlok = 1;
-			break;
-		}
-	}
-
-	if(!lvlok) {
-		return -EKEYLVL;
-	}
+	char key[KEY_MAXLEN];
 	
-	char* key;
-	int len = keylen(level);	
+	int len = keylen(level);
 	int i;
 
     for(i = 0; i < len; i++) {
@@ -290,12 +272,12 @@ int sys_keygen(int level) {
 	return 0;
 }
 
-int sys_encr(char* file) {
+int sys_encr(char* file, int length) {
 
 	return 0;
 }
 
-int sys_decr(char* file) {
+int sys_decr(char* file, int length) {
 
 	return 0;
 }

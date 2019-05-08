@@ -1,4 +1,4 @@
 #define __LIBRARY__
 #include <unistd.h>
 
-_syscall1(int,encr,char*,file)
+_syscall2(int,encr,char*,file,int,length)

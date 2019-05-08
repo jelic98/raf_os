@@ -1,169 +1,260 @@
-/* This is a small utilities library for C in linux 0.01 */
+#ifndef H_UTILS_INCLUDE
+#define H_UTILS_INCLUDE
 
-/* 
-	In the file that will have the implementation use 
-	#define UTIL_IMPLEMENTATION
-	before including this file
-*/
-
-#ifndef UTIL_H_INCLUDED
-#define UTIL_H_INCLUDED
-
+#include <errno.h>
+#include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
 
-/* Standards for get_argv */
-#define ARG_PATH -1
-#define ARG_PWD -2
-#define ARG_SHLVL -3
-#define ARG_HOME -4
-#define ARG_EXECUTABLE -5
+#define STD_IN 0
+#define STD_OUT 1
+#define STD_ERROR 2
 
-/* 
-	In order to use these two functions, main should have a declaration like: 
-		int main(char *);
-*/
-/* Gets the number of program arguments */
-int get_argc(char *args);
-/* Gets the program argument argnum */
-char *get_argv(char *args, int argnum);
+#define BUFFER_LENGTH 128
+#define ASCII_OFFSET 48
+#define STRING_END '\0'
+#define NEW_LINE '\n'
+#define NEW_LINE_STRING "\n"
 
-/* Base 10 only */
-int itoa(int n, char *buf);
+#define MSG_FILE_NAME "File name: "
+#define MSG_FILE_ERROR "Cannot open selected file\n"
 
-/* Parses a number from the provided pointer to the first non-digit character */
-int atoi(const char *buf);
+#define __isdigit(x) ((x >= '0') && (x <= '9'))
 
-/* Pauses execution until enter is pressed */
+#define vardump(x) {\
+	char buf[BUFFER_LENGTH];\
+	int len;\
+	len = itoa(x, buf);\
+	write(STD_OUT, #x ": ", strlen(#x ": "));\
+	write(STD_OUT, buf, len);\
+	write(STD_OUT, "\n", 1);\
+}
+
+static char* errtxt[] = {
+	/* 0 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
+	/* 5 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
+	/* 10 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
+	/* 15 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
+	/* 20 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
+	/* 25 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
+	/* 30 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
+	/* 35 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
+	/* 40 */ 	"Duzina kljuca nije stepen dvojke\0",
+	/* 41 */	"Nivo kljuca nije 1,2,3\0",
+	/* 42 */	"Fajl je vec enkriptovan\0",
+	/* 43 */	"Fajl je vec dekriptovan\0",
+	/* 44 */	"Nedovoljan broj argumenata\0"
+};
+
+int digitcount(int n);
+
+int itoa(int n, char* buf);
+int atoi(const char* buf);
+
+void reverse(char* buf, int len);
+char* newln(char* buf, int len);
+
+void scan(char* buf);
+int scannum();
+
+int fopen(char* name);
+void fclose(int fd);
+int fgets(char* buf, int len, int fd);
+
+void print(char* buf);
+void println(char* buf);
+void printnum(int n);
+
 void pause(void);
 
-/* Reads from file fd until it hits maxlen or \n */
-int fgets(char *buffer, int maxlen, int fd);
+int get_argc(char *args);
+char *get_argv(char *args, int argnum);
 
-inline int printstr(char *s);
-inline int printerr(char *s);
-inline int println(char *s);
+void checkarg(char* args, int n);
+void printerr(int code);
+void checkerr();
 
+#ifdef H_UTILS_IMPLEMENT
 
-#define vardump(x) \
-{\
-	char __vardump_buff[128];\
-	int __vardump_len;\
-	__vardump_len = itoa(x, __vardump_buff);\
-	write(1, #x ": ", strlen(#x ": "));\
-	write(1, __vardump_buff, __vardump_len);\
-	write(1, "\n", 1);\
+int digitcount(int n) {
+	int count = -1;
+
+	while(count++, n > 0) {
+		n /= 10;
+	}
+
+	return count;
 }
 
-
-#ifdef UTIL_IMPLEMENTATION
-
-#ifndef __isdigit
-#define __isdigit(x) ((x >= '0') && (x <= '9'))
-#endif
-/* isdigit endif */
-
-inline int printstr(char *s)
-{
-	return write(1, s, strlen(s));
-}
-
-inline int printerr(char *s)
-{
-	return write(2, s, strlen(s));
-}
-
-inline int println(char *s)
-{
-	return printstr(s) + printstr("\n");
-}
-
-static void __reverse(char *buf, int len)
-{
+void reverse(char* buf, int len) {
 	int i, j;
 	char c;
-	for(i = 0, j = len - 1; i < j; ++i, --j)
-	{
+
+	for(i = 0, j = len - 1; i < j; ++i, --j) {
 		c = buf[i];
 		buf[i] = buf[j];
 		buf[j] = c;
 	}
 }
 
-int itoa(int n, char *buf)
-{
-	int i = 0, sign;
-	if((sign = n) < 0)
-		n = -n;
-	do
-	{
-		buf[i++] = n % 10 + '0';
-	} while((n /= 10) > 0);
+int itoa(int n, char* buf) {
+	int i = 0, sgn;
 
-	if(sign < 0)
+	if((sgn = n) < 0) {
+		n = -n;
+	}
+
+	do{
+		buf[i++] = n % 10 + ASCII_OFFSET;
+	}while((n /= 10) > 0);
+
+	if(sgn < 0) {
 		buf[i++] = '-';
+	}
+
 	buf[i] = '\0';
-	__reverse(buf, i);
+	
+	reverse(buf, i);
+	
 	return i;
 }
 
-int atoi(const char *buf)
-{
+int atoi(const char* buf) {
 	int r = 0, i;
-	for(i = 0; __isdigit(buf[i]); ++i)
-		r = r * 10 + buf[i] - '0';
+
+	for(i = 0; __isdigit(buf[i]); ++i) {
+		r = r * 10 + buf[i] - ASCII_OFFSET;
+	}
+
 	return r;
 }
 
-void pause()
-{
-	char b[10];
-	printstr("Press enter to continue...");
-	read(0, b, 10);
+char* newln(char* buf, int len) {
+	buf[len] = NEW_LINE;
+
+	return buf;
 }
 
-int fgets(char *buffer, int maxlen, int fd)
-{
+void scan(char* buf) {
+	buf[read(STD_IN, buf, BUFFER_LENGTH) - 1] = STRING_END;
+}
+
+int scannum() {
+	char buf[BUFFER_LENGTH];
+
+	scan(buf);
+
+	return atoi(buf);
+}
+
+int fopen(char* name) {
+	int fd = open(name, O_RDONLY);
+
+	if(fd == -1) {
+		print(MSG_FILE_ERROR);
+		_exit(1);
+	}
+
+	return fd;
+}
+
+void fclose(int fd) {
+	close(fd);
+}
+
+int fgets(char* buf, int len, int fd) {
 	int i = 0;
 	char c;
-	do
-	{
-		if(!read(fd, &c, 1) || i == maxlen - 1) break;
-		buffer[i++] = c;	
 
-	} while(c != '\n' && c!='\0');
-	buffer[i] = '\0';
+	do {
+		if(!read(fd, &c, 1) || i == len - 1) {
+			break;
+		}
+
+		buf[i++] = c;
+	}while(c != '\n' && c!='\0');
+	
+	buf[i] = '\0';
+	
 	return i;
 }
 
-int get_argc(char *args)
-{
+void print(char* buf) {
+	int len = strlen(buf);
+
+	buf[len] = STRING_END;
+	
+	write(STD_OUT, buf, len + 1);
+}
+
+void println(char* buf) {
+	print(newln(buf, strlen(buf)));
+}
+
+void printnum(int num) {
+	char buf[BUFFER_LENGTH];
+	
+	itoa(num, buf);
+
+	println(buf);	
+}
+
+void pause() {
+	char b[10];
+	
+	print("Press enter to continue...");
+	
+	read(STD_IN, b, 10);
+}
+
+int get_argc(char* args) {
 	int r = 0, i = 0;
-	while(strncmp(args + i, "PATH=", 5))
-	{
+
+	while(strncmp(args + i, "PATH=", 5)) {
 		while(args[i++]);
 		r++;
 	}
-	vardump(r);
+	
 	return r;
 }
 
-char *get_argv(char *args, int argnum)
-{
-	int i = 0, __tmp;
+char* get_argv(char* args, int argnum) {
 	static int __offset[] = {5, 4, 6, 5, 2};
-	if(argnum >= 0) while(argnum--) while(args[i++]);
-	else
-	{
+	int i = 0, __tmp;
+	
+	if(argnum >= 0) while(argnum--) {
+		while(args[i++]);
+	}else {
 		__tmp = argnum = -argnum - 1;
+		
 		while(strncmp(args + i, "PATH=", 5)) while(args[i++]);
+		
 		while(argnum--) while(args[i++]);
+		
 		return args + i + __offset[__tmp];
-	}	
+	}
+
 	return args + i;
-} 
+}
 
+void checkarg(char* args, int n) {
+	if(get_argc(args) <= n) {
+		printerr(EARGC);
+		_exit(EARGC);
+	}
+}
+
+void printerr(int code) {
+	println(errtxt[code]);
+}
+
+void checkerr() {
+	if(errno) {
+		printerr(errno);
+	}
+
+	_exit(errno);
+}
 
 #endif
-/* impl endif */
 #endif
-/* headerguard endif */
