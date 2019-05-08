@@ -6,4 +6,5 @@
 
 int main(char* args) {
 	keyclear();
+	checkerr();
 }

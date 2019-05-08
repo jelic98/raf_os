@@ -1,4 +1,9 @@
 #!/bin/bash
 make clean
-make
-qemu-system-i386 -hdb hd_oldlinux.img -fda Image -boot a
+if make; then
+if [[ $1 == 1 ]] ; then
+cd apps
+./run_tools.sh
+cd ..
+fi
+fi

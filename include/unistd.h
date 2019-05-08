@@ -264,7 +264,7 @@ int getdents64(unsigned int fd, struct dirent64 *dirp, unsigned int count);
 int keyset(const char* key, int length);
 int keyclear();
 int keygen(int level);
-int encr(const char* file, int length);
-int decr(const char* file, int length);
+int encr(char* file, int length);
+int decr(char* file, int length);
 
 #endif

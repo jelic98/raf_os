@@ -63,5 +63,6 @@ extern int errno;
 #define EALENCR	42
 #define EALDECR	43
 #define EARGC	44
+#define EKEYNS	45
 
 #endif

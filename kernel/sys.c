@@ -7,13 +7,6 @@
 #include <sys/times.h>
 #include <sys/utsname.h>
 
-// PROJEKAT
-#define KEY_MAXLEN 513
-#define ASCII_FIRST 32
-#define ASCII_LAST 126
-#define keylen(x) (1 << (x))
-#define keylenok(x) ((x != 0) && ((x & (x - 1)) == 0))
-
 int sys_ftime()
 {
 	return -ENOSYS;
@@ -243,41 +236,86 @@ int sys_null(int nr)
 }
 
 // PROJEKAT
+#include <fcntl.h>
+#include <unistd.h>
+#define KEY_MAXLEN 513
+#define ASCII_FIRST 32
+#define ASCII_LAST 126
+#define KEY_LVLS {1, 2, 3}
+#define keyok(x) (x[0] != 0)
+#define keylen(x) (1 << (x + 1))
+#define keylenok(x) ((x > 0) && (x < KEY_MAXLEN) && ((x & (x - 1)) == 0))
+static char gkey[KEY_MAXLEN] = {0};
 
 int sys_keyset(const char* key, int length) {
 	if(!keylenok(length)) {
 		return -EKEYLEN;
 	}
 
+	int i;
+	
+	for(i = 0; i < length; i++) {
+		gkey[i] = get_fs_byte(key + i);
+	}
+
 	return 0;
 }
 
 int sys_keyclear() {
+	memset(gkey, 0, sizeof(gkey));
 
 	return 0;
 }
 
 int sys_keygen(int level) {
-	char key[KEY_MAXLEN];
-	
-	int len = keylen(level);
+	int lvls[] = KEY_LVLS;
+	int lvlslen = sizeof(lvls) / sizeof(int);
+	int lvlok = 0;
 	int i;
 
-    for(i = 0; i < len; i++) {
-        //key[i] = (rand() % (ASCII_LAST - ASCII_FIRST + 1)) + ASCII_FIRST;
+	for(i = 0; i < lvlslen; i++) {
+		if(lvls[i] == level) {
+			lvlok = 1;
+			break;
+		}
 	}
 
-    key[len] = 0;
+	if(!lvlok) {
+		return -EKEYLVL;
+	}
+	
+	memset(gkey, 0, sizeof(gkey));
+
+	int len = keylen(level);
+	char used[127] = {0};
+	char c;
+
+	for(i = 0; i < len; i++) {
+		do {
+			c = (i/*rand()*/ % (ASCII_LAST - ASCII_FIRST + 1)) + ASCII_FIRST;
+		}while(used[c]);
+
+		used[c] = 1;
+		gkey[i] = c;
+	}
+
+	printk("%s\n", gkey);
 
 	return 0;
 }
 
-int sys_encr(const char* file, int length) {
+int sys_encr(char* file, int length) {
+	if(!keyok(gkey)) {
+		return -EKEYNS;
+	}
 
 	return 0;
 }
 
-int sys_decr(const char* file, int length) {
+int sys_decr(char* file, int length) {
+	if(!keyok(gkey)) {
+		return -EKEYNS;
+	}
 
 	return 0;
 }

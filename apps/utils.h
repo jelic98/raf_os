@@ -40,10 +40,11 @@ static char* errtxt[] = {
 	/* 30 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
 	/* 35 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
 	/* 40 */ 	"Duzina kljuca nije stepen dvojke\0",
-	/* 41 */	"Nivo kljuca nije 1,2,3\0",
+	/* 41 */	"Nivo kljuca nije ispravan\0",
 	/* 42 */	"Fajl je vec enkriptovan\0",
 	/* 43 */	"Fajl je vec dekriptovan\0",
-	/* 44 */	"Nedovoljan broj argumenata\0"
+	/* 44 */	"Nedovoljan broj argumenata\0",
+	/* 44 */	"Kljuc nije postavljen\0"
 };
 
 int digitcount(int n);
