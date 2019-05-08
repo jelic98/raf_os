@@ -244,7 +244,7 @@ int sys_null(int nr)
 
 // PROJEKAT
 
-int sys_keyset(char* key, int length) {
+int sys_keyset(const char* key, int length) {
 	if(!keylenok(length)) {
 		return -EKEYLEN;
 	}
@@ -272,12 +272,12 @@ int sys_keygen(int level) {
 	return 0;
 }
 
-int sys_encr(char* file, int length) {
+int sys_encr(const char* file, int length) {
 
 	return 0;
 }
 
-int sys_decr(char* file, int length) {
+int sys_decr(const char* file, int length) {
 
 	return 0;
 }

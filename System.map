@@ -714,23 +714,23 @@ LOAD lib/lib.a
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x0000000000000000    0x1a2db
+.debug_info     0x0000000000000000    0x1a2e6
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x0000000000000000      0xccf init/main.o
- .debug_info    0x0000000000000ccf     0x8772 kernel/kernel.o
- .debug_info    0x0000000000009441      0x4d6 mm/mm.o
- .debug_info    0x0000000000009917     0xe2d3 fs/fs.o
- .debug_info    0x0000000000017bea       0x70 lib/lib.a(ctype.o)
- .debug_info    0x0000000000017c5a      0x3af lib/lib.a(_exit.o)
- .debug_info    0x0000000000018009      0x403 lib/lib.a(open.o)
- .debug_info    0x000000000001840c      0x3ce lib/lib.a(close.o)
- .debug_info    0x00000000000187da       0x3f lib/lib.a(errno.o)
- .debug_info    0x0000000000018819      0x400 lib/lib.a(write.o)
- .debug_info    0x0000000000018c19      0x3ce lib/lib.a(dup.o)
- .debug_info    0x0000000000018fe7      0x3cb lib/lib.a(setsid.o)
- .debug_info    0x00000000000193b2      0x3fc lib/lib.a(execve.o)
- .debug_info    0x00000000000197ae      0x428 lib/lib.a(wait.o)
- .debug_info    0x0000000000019bd6      0x705 lib/lib.a(string.o)
+ .debug_info    0x0000000000000ccf     0x877d kernel/kernel.o
+ .debug_info    0x000000000000944c      0x4d6 mm/mm.o
+ .debug_info    0x0000000000009922     0xe2d3 fs/fs.o
+ .debug_info    0x0000000000017bf5       0x70 lib/lib.a(ctype.o)
+ .debug_info    0x0000000000017c65      0x3af lib/lib.a(_exit.o)
+ .debug_info    0x0000000000018014      0x403 lib/lib.a(open.o)
+ .debug_info    0x0000000000018417      0x3ce lib/lib.a(close.o)
+ .debug_info    0x00000000000187e5       0x3f lib/lib.a(errno.o)
+ .debug_info    0x0000000000018824      0x400 lib/lib.a(write.o)
+ .debug_info    0x0000000000018c24      0x3ce lib/lib.a(dup.o)
+ .debug_info    0x0000000000018ff2      0x3cb lib/lib.a(setsid.o)
+ .debug_info    0x00000000000193bd      0x3fc lib/lib.a(execve.o)
+ .debug_info    0x00000000000197b9      0x428 lib/lib.a(wait.o)
+ .debug_info    0x0000000000019be1      0x705 lib/lib.a(string.o)
 
 .debug_abbrev   0x0000000000000000     0x43bb
  *(.debug_abbrev)

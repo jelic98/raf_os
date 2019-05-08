@@ -261,10 +261,10 @@ pid_t getpgrp(void);
 pid_t setsid(void);
 int getdents(unsigned int fd, struct dirent *dirp, unsigned int count);
 int getdents64(unsigned int fd, struct dirent64 *dirp, unsigned int count);
-int keyset(char* key, int length);
+int keyset(const char* key, int length);
 int keyclear();
 int keygen(int level);
-int encr(char* file, int length);
-int decr(char* file, int length);
+int encr(const char* file, int length);
+int decr(const char* file, int length);
 
 #endif
