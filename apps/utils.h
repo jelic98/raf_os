@@ -44,7 +44,7 @@ static char* errtxt[] = {
 	/* 42 */	"File is already encrypted\0",
 	/* 43 */	"File is already decrypted\0",
 	/* 44 */	"Missing arguments\0",
-	/* 44 */	"Key is not set\0"
+	/* 44 */	"Required key not available\0"
 };
 
 int digitcount(int n);
