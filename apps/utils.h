@@ -10,6 +10,12 @@
 #define STD_OUT 1
 #define STD_ERROR 2
 
+#define ARG_PAT -1
+#define ARG_PWD -2
+#define ARG_SHE -3
+#define ARG_HOM -4
+#define ARG_EXE -5
+
 #define BLOCK_LENGTH 1024
 #define BUFFER_LENGTH 128
 #define ASCII_OFFSET 48

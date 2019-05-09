@@ -8,14 +8,7 @@
 int main(char* args) {
 	checkarg(args, 1);
 
-	int fd = open(ENC_LST, O_RDWR | O_CREAT | O_EXCL, S_IRWXU);
-	
-	if(fd > 0) {
-		close(fd);
-	}else {
-		// TODO Load file in memory
-	}
-
+	renclst();
 	resterr();
 
 	char* key = get_argv(args, 1);
