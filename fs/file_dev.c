@@ -14,9 +14,9 @@
 int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 {
 	// PROJEKAT
-	if(!keyok(gkey)) {
-		return -EPERM;
-	}
+	//if(!keyok(gkey)) {
+	//	return -EPERM;
+	//}
 
 	int left,chars,nr;
 	struct buffer_head * bh;
@@ -50,9 +50,9 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 int file_write(struct m_inode * inode, struct file * filp, char * buf, int count)
 {
 	// PROJEKAT
-	if(!keyok(gkey)) {
-		return -EPERM;
-	}
+	//if(!keyok(gkey)) {
+	//	return -EPERM;
+	//}
 
 	off_t pos;
 	int block,c;

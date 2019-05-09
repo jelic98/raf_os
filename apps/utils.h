@@ -10,14 +10,15 @@
 #define STD_OUT 1
 #define STD_ERROR 2
 
+#define BLOCK_LENGTH 1024
 #define BUFFER_LENGTH 128
 #define ASCII_OFFSET 48
 #define STRING_END '\0'
 #define NEW_LINE '\n'
 #define NEW_LINE_STRING "\n"
 
-#define MSG_FILE_NAME "File name: "
-#define MSG_FILE_ERROR "Cannot open selected file\n"
+#define MSG_FILE_NAME "File name: \0"
+#define MSG_FILE_ERROR "Cannot open selected file\0"
 
 #define __isdigit(x) ((x >= '0') && (x <= '9'))
 
@@ -61,6 +62,7 @@ int scannum();
 int fopen(char* name);
 void fclose(int fd);
 int fgets(char* buf, int len, int fd);
+int fputs(char* buf, int len, int fd);
 
 void print(char* buf);
 void println(char* buf);
@@ -74,6 +76,7 @@ char *get_argv(char *args, int argnum);
 void checkarg(char* args, int n);
 void printerr(int code);
 void checkerr();
+void resterr();
 
 #ifdef H_UTILS_IMPLEMENT
 
@@ -180,6 +183,12 @@ int fgets(char* buf, int len, int fd) {
 	return i;
 }
 
+int fputs(char* buf, int len, int fd) {
+	write(fd, buf, len);
+
+	return len;
+}
+
 void print(char* buf) {
 	int len = strlen(buf);
 
@@ -255,6 +264,10 @@ void checkerr() {
 	}
 
 	_exit(errno);
+}
+
+void resterr() {
+	errno = 0;
 }
 
 #endif

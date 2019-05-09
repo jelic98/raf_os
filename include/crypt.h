@@ -6,6 +6,7 @@
 #define ASCII_LAST 126
 #define PAD_CHR '~'
 #define KEY_LVLS {1, 2, 3}
+#define ENC_LST "/root/list.cry"
 
 #define keyok(x) (x[0] != 0)
 #define keylen(x) (1 << (x + 1))

@@ -241,7 +241,7 @@ int sys_null(int nr)
 
 int sys_keyset(const char* key, int length) {
 	if(!keylenok(length)) {
-		return -EKEYLEN;
+		// TODO return -EKEYLEN;
 	}
 
 	int i;
@@ -297,23 +297,20 @@ int sys_keygen(int level) {
 }
 
 int sys_encr(char* file, int length) {
-	memset(gkey, 0, sizeof(gkey));
-
-	gkey[0] = 'H';
-	gkey[1] = 'A';
-	gkey[2] = 'C';
-	gkey[3] = 'K';
-
 	if(!keyok(gkey)) {
 		return -EKEYNS;
 	}
+	
+	int i, j, k;
 
-	char* txt = "Geeks for Geeks";
-
-	int txtlen = strlen(txt);
+	char txt[length];
+	
+	for(i = 0; i < length; i++) {
+		txt[i] = get_fs_byte(file + i);
+	}
 
     int m = strlen(gkey);
-    int n = txtlen / m + (txtlen % m != 0);
+    int n = length / m + (length % m != 0);
 
 	char hed[m];
 	strcpy(hed, gkey);
@@ -325,7 +322,6 @@ int sys_encr(char* file, int length) {
     char copmat[n][m];
 	char cip[n * m];
 	
-	int i, j, k;
 	char tmp;
 
 	for(k = 0; k < m - 1; k++) {
@@ -342,7 +338,7 @@ int sys_encr(char* file, int length) {
         for(j = 0; j < m; j++) {
             k = i * m + j;
 
-			if(k < txtlen && isascii(txt[k])) {
+			if(k < length && isascii(txt[k])) {
                 mat[i][j] = txt[k];
             }else {
                 mat[i][j] = PAD_CHR;
@@ -370,27 +366,28 @@ int sys_encr(char* file, int length) {
 
 	cip[k] = 0;
 
+	for(i = 0; i < k; i++) {
+		put_fs_byte(cip[i], file + i);
+	}
+
 	return 0;
 }
 
 int sys_decr(char* file, int length) {
-	memset(gkey, 0, sizeof(gkey));
-
-	gkey[0] = 'H';
-	gkey[1] = 'A';
-	gkey[2] = 'C';
-	gkey[3] = 'K';
-
 	if(!keyok(gkey)) {
 		return -EKEYNS;
 	}
 	
-	char* cip = "e  kefGsGsrekoe~";
+	int i, j, k;
 
-	int ciplen = strlen(cip);
+	char cip[length];
+	
+	for(i = 0; i < length; i++) {
+		cip[i] = get_fs_byte(file + i);
+	}
 
     int m = strlen(gkey);
-    int n = ciplen / m;
+    int n = length / m;
 
 	char hed[m];
 	strcpy(hed, gkey);
@@ -402,7 +399,6 @@ int sys_decr(char* file, int length) {
     char copmat[n][m];
 	char txt[n * m];
 	
-	int i, j, k;
 	char tmp;
 
 	for(k = 0; k < m - 1; k++) {
@@ -440,6 +436,10 @@ int sys_decr(char* file, int length) {
 	}
 
 	txt[k] = 0;
+
+	for(i = 0; i < k; i++) {
+		put_fs_byte(txt[i], file + i);
+	}
 	
 	return 0;
 }
