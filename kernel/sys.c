@@ -237,7 +237,7 @@ int sys_null(int nr)
 
 // PROJEKAT
 #include <random.h>
-#define KEY_MAXLEN 513
+#define KEY_MAXLEN 128
 #define ASCII_FIRST 32
 #define ASCII_LAST 126
 #define PAD_CHR '~'
@@ -308,18 +308,16 @@ int sys_keygen(int level) {
 int sys_encr(char* file, int length) {
 	memset(gkey, 0, sizeof(gkey));
 
-	gkey[0] = 'G';
-	gkey[1] = 'E';
-	gkey[2] = 'R';
-	gkey[3] = 'M';
-	gkey[4] = 'A';
-	gkey[5] = 'N';
+	gkey[0] = 'H';
+	gkey[1] = 'A';
+	gkey[2] = 'C';
+	gkey[3] = 'K';
 
-	//if(!keyok(gkey)) {
-	//	return -EKEYNS;
-	//}
+	if(!keyok(gkey)) {
+		return -EKEYNS;
+	}
 
-	char* txt = "defend the east wall of the castle";
+	char* txt = "Geeks for Geeks";
 
 	int txtlen = strlen(txt);
 
@@ -333,6 +331,7 @@ int sys_encr(char* file, int length) {
 	strcpy(shed, gkey);
 	
     char mat[n][m];
+    char copmat[n][m];
 	char cip[n * m];
 	
 	int i, j, k;
@@ -357,46 +356,19 @@ int sys_encr(char* file, int length) {
             }else {
                 mat[i][j] = PAD_CHR;
 			}
+
+			copmat[i][j] = mat[i][j];
         }
 	}
 
-	for(i = 0; i < n; i++) {
-		for(j = 0; j < m; j++) {
-			if(j > 0) {
-				printk(" ");
-			}
-
-			printk("%c", mat[i][j]);
-		}
-
-		printk("\n");
-	}
-
-	printk("%s\n", hed);
-	printk("%s\n", shed);
-
 	for(k = 0; k < m; k++) {
 		for(j = 0; j < m; j++) {
-			if(k != j && hed[k] == shed[j]) {
+			if(j != k && hed[k] == shed[j]) {
 				for(i = 0; i < n; i++) {
-					tmp = mat[i][k];
-					mat[i][k] = mat[i][j];
-					mat[i][j] = tmp;
+					mat[i][j] = copmat[i][k];
 				}
 			}
-		}	
-	}
-
-	for(i = 0; i < n; i++) {
-		for(j = 0; j < m; j++) {
-			if(j > 0) {
-				printk(" ");
-			}
-
-			printk("%c", mat[i][j]);
 		}
-
-		printk("\n");
 	}
 
 	for(k = 0, j = 0; j < m; j++) {
@@ -405,7 +377,7 @@ int sys_encr(char* file, int length) {
 		}
 	}
 
-	printk("%s\n", cip);
+	cip[k] = 0;
 
 	return 0;
 }
@@ -413,23 +385,21 @@ int sys_encr(char* file, int length) {
 int sys_decr(char* file, int length) {
 	memset(gkey, 0, sizeof(gkey));
 
-	gkey[0] = 'G';
-	gkey[1] = 'E';
-	gkey[2] = 'R';
-	gkey[3] = 'M';
-	gkey[4] = 'A';
-	gkey[5] = 'N';
+	gkey[0] = 'H';
+	gkey[1] = 'A';
+	gkey[2] = 'C';
+	gkey[3] = 'K';
 
-	//if(!keyok(gkey)) {
-	//	return -EKEYNS;
-	//}
+	if(!keyok(gkey)) {
+		return -EKEYNS;
+	}
 	
-	char* cip = "n wfc~etslhtdea a~ee o ed altsfht el4";
+	char* cip = "e  kefGsGsrekoe~";
 
 	int ciplen = strlen(cip);
 
     int m = strlen(gkey);
-    int n = ciplen / m + (ciplen % m != 0);
+    int n = ciplen / m;
 
 	char hed[m];
 	strcpy(hed, gkey);
@@ -438,6 +408,7 @@ int sys_decr(char* file, int length) {
 	strcpy(shed, gkey);
 	
     char mat[n][m];
+    char copmat[n][m];
 	char txt[n * m];
 	
 	int i, j, k;
@@ -455,46 +426,29 @@ int sys_decr(char* file, int length) {
 
 	for(k = 0, j = 0; j < m; j++) {
 		for(i = 0; i < n; i++) {
-			mat[i][j] = cip[k++];
+			copmat[i][j] = mat[i][j] = cip[k++];
 		}
 	}	
 
-	for(i = 0; i < n; i++) {
-		for(j = 0; j < m; j++) {
-			if(j > 0) {
-				printk(" ");
-			}
-
-			printk("%c", mat[i][j]);
-		}
-
-		printk("\n");
-	}
-
-	printk("%s\n", hed);
-	printk("%s\n", shed);
-
 	for(k = 0; k < m; k++) {
 		for(j = 0; j < m; j++) {
-			if(k != j && hed[k] == shed[j]) {
+			if(j != k && hed[k] == shed[j]) {
 				for(i = 0; i < n; i++) {
-					tmp = mat[i][k];
-					mat[i][k] = mat[i][j];
-					mat[i][j] = tmp;
+					mat[i][k] = copmat[i][j];
 				}
 			}
-		}	
+		}
 	}
 
-	for(i = 0; i < n; i++) {
+	for(k = 0, i = 0; i < n; i++) {
         for(j = 0; j < m; j++) {
-            k = i * m + j;
-
-			if(k < ciplen && isascii(txt[k]) && mat[i][j] != PAD_CHR) {
-                txt[k] = mat[i][j];
+			if(mat[i][j] != PAD_CHR) {
+                txt[k++] = mat[i][j];
 			}
         }
 	}
+
+	txt[k] = 0;
 	
 	return 0;
 }

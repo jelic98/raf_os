@@ -39,12 +39,12 @@ static char* errtxt[] = {
 	/* 25 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
 	/* 30 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
 	/* 35 */ 	"NULL\0","NULL\0","NULL\0","NULL\0","NULL\0",
-	/* 40 */ 	"Duzina kljuca nije stepen dvojke\0",
-	/* 41 */	"Nivo kljuca nije ispravan\0",
-	/* 42 */	"Fajl je vec enkriptovan\0",
-	/* 43 */	"Fajl je vec dekriptovan\0",
-	/* 44 */	"Nedovoljan broj argumenata\0",
-	/* 44 */	"Kljuc nije postavljen\0"
+	/* 40 */ 	"Key length is not the power ot two\0",
+	/* 41 */	"Key level is not in range\0",
+	/* 42 */	"File is already encrypted\0",
+	/* 43 */	"File is already decrypted\0",
+	/* 44 */	"Missing arguments\0",
+	/* 44 */	"Key is not set\0"
 };
 
 int digitcount(int n);
