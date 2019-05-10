@@ -5,11 +5,7 @@
 #define H_UTILS_IMPLEMENT
 #include "utils.h"
 
-int main(char* args) {
-	checkarg(args, 1);
-	
-	char file[BLOCK_LENGTH];
-	
+void get_path(char* args, char* res) {
 	char* path = get_argv(args, 1);
 
 	if(path[0] != '/') {
@@ -20,30 +16,51 @@ int main(char* args) {
 		}
 
 		strcat(pwd, path);
-		strcpy(path, pwd);
+		strcpy(res, pwd);
+	}else {
+		strcpy(res, path);
 	}
+}
 
+int main(char* args) {
+	checkarg(args, 1);
+	
+	char file[FILE_LENGTH];
+
+	char path[FLNM_MAXLEN];
+	get_path(args, path);
+	
 	int fd = open(path, O_RDONLY);
 
 	if(fd > 0) {
-		if(!uisencr(fd)) {
-			printerr(EALDECR);
-		}
+		//if(!uisencr(fd)) {
+		//	printerr(EALDECR);
+		//	close(fd);
+		//	_exit(EALDECR);
+		//}
 
-		fgets(file, BLOCK_LENGTH, fd);
+		char buf[BLOCK_LENGTH];
+		int blen;
+
+		while((blen = read(fd, buf, BLOCK_LENGTH)) > 0) {
+			decr(buf, blen);
+			checkerr();
+
+			strncat(file, buf, blen);
+
+			memset(buf, 0, sizeof(buf));
+		};
+
 		close(fd);
 	}else {
 		println(MSG_FILE_ERROR);
 	}
-	
-	decr(file, strlen(file));
-	checkerr();
 
 	fd = open(path, O_WRONLY);
 	
 	if(fd > 0) {
+		write(fd, file, strlen(file));
 		decrlst(fd, path, strlen(path));
-		fputs(file, BLOCK_LENGTH, fd);
 		close(fd);
 	}else {
 		println(MSG_FILE_ERROR);

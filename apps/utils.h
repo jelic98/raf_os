@@ -17,6 +17,7 @@
 #define ARG_EXE -5
 
 #define BLOCK_LENGTH 1024
+#define FILE_LENGTH 4096
 #define BUFFER_LENGTH 128
 #define ASCII_OFFSET 48
 #define STRING_END '\0'

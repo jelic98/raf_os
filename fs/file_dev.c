@@ -8,16 +8,8 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-// PROJEKAT
-#include <crypt.h>
-
 int file_read(int fd, struct m_inode * inode, struct file * filp, char * buf, int count)
 {
-	// PROJEKAT
-	if(keyok(gkey) && isencr(fd)) {
-	
-	}
-
 	int left,chars,nr;
 	struct buffer_head * bh;
 

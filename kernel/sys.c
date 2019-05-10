@@ -320,7 +320,6 @@ int sys_encr(char* file, int length) {
 	
     char mat[n][m];
     char copmat[n][m];
-	char cip[n * m];
 	
 	char tmp;
 
@@ -358,13 +357,15 @@ int sys_encr(char* file, int length) {
 		}
 	}
 
+	memset(copmat, 0, sizeof(copmat));
+
+	char* cip = copmat;
+
 	for(k = 0, j = 0; j < m; j++) {
 		for(i = 0; i < n; i++) {
 			cip[k++] = mat[i][j];
 		}
 	}
-
-	cip[k] = 0;
 
 	for(i = 0; i < k; i++) {
 		put_fs_byte(cip[i], file + i);
@@ -397,7 +398,6 @@ int sys_decr(char* file, int length) {
 	
     char mat[n][m];
     char copmat[n][m];
-	char txt[n * m];
 	
 	char tmp;
 
@@ -427,6 +427,10 @@ int sys_decr(char* file, int length) {
 		}
 	}
 
+	memset(copmat, 0, sizeof(copmat));
+
+	char* txt = copmat;
+
 	for(k = 0, i = 0; i < n; i++) {
         for(j = 0; j < m; j++) {
 			if(mat[i][j] != PAD_CHR) {
@@ -435,12 +439,10 @@ int sys_decr(char* file, int length) {
         }
 	}
 
-	txt[k] = 0;
-
 	for(i = 0; i < k; i++) {
 		put_fs_byte(txt[i], file + i);
 	}
-	
+
 	return 0;
 }
 
