@@ -305,17 +305,24 @@ int sys_keygen(int level) {
 	return 0;
 }
 
-int sys_encr(char* file, int length) {
+int sys_encr(char* file, int length, int scall) {
 	if(!keyok(gkey)) {
 		return -EKEYNS;
 	}
 
 	int i, j, k;
 
-	char txt[length];
-	
-	for(i = 0; i < length; i++) {
-		txt[i] = get_fs_byte(file + i);
+	char txtarr[length];
+	char* txt;
+
+	if(scall) {
+		txt = txtarr;
+
+		for(i = 0; i < length; i++) {
+			txt[i] = get_fs_byte(file + i);
+		}
+	}else {
+		txt = file;
 	}
 
     int m = strlen(gkey);
@@ -377,23 +384,34 @@ int sys_encr(char* file, int length) {
 	}
 
 	for(i = 0; i < k; i++) {
-		put_fs_byte(cip[i], file + i);
+		if(scall) {
+			put_fs_byte(cip[i], file + i);
+		}else {
+			file[i] = cip[i];
+		}
 	}
 
 	return 0;
 }
 
-int sys_decr(char* file, int length) {
+int sys_decr(char* file, int length, int scall) {
 	if(!keyok(gkey)) {
 		return -EKEYNS;
 	}
 	
 	int i, j, k;
-
-	char cip[length];
 	
-	for(i = 0; i < length; i++) {
-		cip[i] = get_fs_byte(file + i);
+	char ciparr[length];
+	char* cip;
+
+	if(scall) {
+		cip = ciparr;
+
+		for(i = 0; i < length; i++) {
+			cip[i] = get_fs_byte(file + i);
+		}
+	}else {
+		cip = file;
 	}
 
     int m = strlen(gkey);
@@ -449,9 +467,13 @@ int sys_decr(char* file, int length) {
 	}
 
 	for(i = 0; i < k; i++) {
-		put_fs_byte(txt[i], file + i);
+		if(scall) {
+			put_fs_byte(txt[i], file + i);
+		}else {
+			file[i] = txt[i];
+		}
 	}
-
+	
 	return 0;
 }
 

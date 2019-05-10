@@ -8,6 +8,9 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+// PROJEKAT
+#include <crypt.h>
+
 int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 {
 	int left,chars,nr;
@@ -27,8 +30,21 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 		left -= chars;
 		if (bh) {
 			char * p = nr + bh->b_data;
+
+			// PROJEKAT
+			char* pc = p;
+			if(keyok(gkey) && isencr(inode->i_num)) {
+				decr(pc, strlen(pc), 0);
+			}
+
 			while (chars-->0)
 				put_fs_byte(*(p++),buf++);
+
+			// PROJEKAT
+			if(keyok(gkey) && isencr(inode->i_num)) {
+				encr(pc, strlen(pc), 0);
+			}
+			
 			brelse(bh);
 		} else {
 			while (chars-->0)
@@ -71,8 +87,21 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 			inode->i_dirt = 1;
 		}
 		i += c;
+
+		// PROJEKAT
+		char* pc = bh->b_data;
+		if(keyok(gkey) && isencr(inode->i_num)) {
+			decr(pc, strlen(pc), 0);
+		}
+
 		while (c-->0)
 			*(p++) = get_fs_byte(buf++);
+
+		// PROJEKAT
+		if(keyok(gkey) && isencr(inode->i_num)) {
+			encr(pc, strlen(pc), 0);
+		}
+
 		brelse(bh);
 	}
 	inode->i_mtime = CURRENT_TIME;
