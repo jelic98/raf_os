@@ -239,6 +239,15 @@ int sys_null(int nr)
 #include <crypt.h>
 #include <random.h>
 
+int get_inum(int fd) {
+	struct file * file = current->filp[fd];
+	
+	struct m_inode * inode;
+	inode = file->f_inode;
+
+	return inode->i_num;
+}
+
 int sys_keyset(const char* key, int length) {
 	if(!keylenok(length)) {
 		return -EKEYLEN;
@@ -449,13 +458,15 @@ int sys_decr(char* file, int length) {
 int sys_encrlst(int fd, char* path, int length) {
 	int i;
 
+	int inum = get_inum(fd);
+
 	for(i = 0; i < length; i++) {
-		enclst[fd][i] = get_fs_byte(path + i);
+		enclst[inum][i] = get_fs_byte(path + i);
 	}
 }
 
 int sys_decrlst(int fd, char* path, int length) {
-	enclst[fd][0] = 0;
+	enclst[get_inum(fd)][0] = 0;
 }
 
 int sys_lstent(int fd, char* entry) {
@@ -467,5 +478,5 @@ int sys_lstent(int fd, char* entry) {
 }
 
 int sys_uisencr(int fd) {
-	return isencr(fd);
+	return isencr(get_inum(fd));
 }

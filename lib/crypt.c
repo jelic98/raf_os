@@ -65,6 +65,6 @@ void wenclst() {
 	errno = 0;
 }
 
-int isencr(int fd) {
-	return enclst[fd][0];
+int isencr(int inum) {	
+	return enclst[inum][0];
 }

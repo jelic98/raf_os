@@ -25,6 +25,6 @@ char enclst[FDSC_MAXLEN][FLNM_MAXLEN];
 static void ienclst();
 void renclst();
 void wenclst();
-int isencr(int fd);
+int isencr(int inum);
 
 #endif

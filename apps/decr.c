@@ -33,11 +33,11 @@ int main(char* args) {
 	int fd = open(path, O_RDONLY);
 
 	if(fd > 0) {
-		//if(!uisencr(fd)) {
-		//	printerr(EALDECR);
-		//	close(fd);
-		//	_exit(EALDECR);
-		//}
+		if(!uisencr(fd)) {
+			printerr(EALDECR);
+			close(fd);
+			_exit(EALDECR);
+		}
 
 		char buf[BLOCK_LENGTH];
 		int blen;

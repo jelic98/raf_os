@@ -8,7 +8,7 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-int file_read(int fd, struct m_inode * inode, struct file * filp, char * buf, int count)
+int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 {
 	int left,chars,nr;
 	struct buffer_head * bh;
@@ -39,7 +39,7 @@ int file_read(int fd, struct m_inode * inode, struct file * filp, char * buf, in
 	return (count-left)?(count-left):-ERROR;
 }
 
-int file_write(int fd, struct m_inode * inode, struct file * filp, char * buf, int count)
+int file_write(struct m_inode * inode, struct file * filp, char * buf, int count)
 {
 	off_t pos;
 	int block,c;
