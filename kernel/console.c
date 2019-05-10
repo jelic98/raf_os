@@ -296,7 +296,7 @@ void list_path(const char* path) {
 
 		char* name = entry.d_name;
 		
-		if(*name == '.') {
+		if(!strcmp(*name, '.')) {
 			continue;
 		}
 
