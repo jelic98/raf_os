@@ -26,31 +26,30 @@ int main(char* args) {
 	int fd = open(path, O_RDONLY);
 
 	if(fd > 0) {
-		fgets(file, BLOCK_LENGTH, fd);
+		if(uisencr(fd)) {
+			printerr(EALENCR);
+		}
 
+		fgets(file, BLOCK_LENGTH, fd);
 		close(fd);
 	}else {
 		println(MSG_FILE_ERROR);
-		resterr();
 	}
 	
 	encr(file, strlen(file));
+	checkerr();
 
 	fd = open(path, O_WRONLY);
 	
 	if(fd > 0) {
-		strcpy(enclst[fd], path);
-
+		encrlst(fd, path, strlen(path));
 		fputs(file, BLOCK_LENGTH, fd);
-
 		close(fd);
 	}else {
 		println(MSG_FILE_ERROR);
-		resterr();
 	}
 
 	wenclst();
-	resterr();
 
-	checkerr();
+	_exit(0);
 }

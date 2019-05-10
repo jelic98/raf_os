@@ -140,6 +140,10 @@
 #define __NR_keygen	232
 #define __NR_encr	233
 #define __NR_decr	234
+#define __NR_encrlst	235
+#define __NR_decrlst	236
+#define __NR_lstent	237
+#define __NR_uisencr	238
 
 #define _syscall0(type,name) \
 type name(void) \
@@ -266,5 +270,9 @@ int keyclear();
 int keygen(int level);
 int encr(char* file, int length);
 int decr(char* file, int length);
+int encrlst(int fd, char* path, int length);
+int decrlst(int fd, char* path, int length);
+int lstent(int fd, char* entry);
+int uisencr(int fd);
 
 #endif

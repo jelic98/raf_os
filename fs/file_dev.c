@@ -14,7 +14,9 @@
 int file_read(int fd, struct m_inode * inode, struct file * filp, char * buf, int count)
 {
 	// PROJEKAT
-	printk("Encrypted: %d\n", fd);
+	if(keyok(gkey) && isencr(fd)) {
+	
+	}
 
 	int left,chars,nr;
 	struct buffer_head * bh;

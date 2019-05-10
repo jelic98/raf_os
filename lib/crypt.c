@@ -6,9 +6,19 @@ void ienclst() {
 	if(fd > 0) {
 		close(fd);
 	}
+
+	errno = 0;
 }
 
 void renclst() {
+	ienclst();
+	
+	static int readcnt = 0;
+
+	if(readcnt++) {
+		return;
+	}
+
 	int fd = open(ENC_LST, O_RDONLY);
 	
 	if(fd > 0) {	
@@ -22,31 +32,37 @@ void renclst() {
 			int enc = open(path, O_RDONLY);
 
 			if(enc > 0) {
-				strcpy(enclst[enc], path);
+				encrlst(enc, path, strlen(path));
 				close(enc);
 			}
 		}while(len);
 
 		close(fd);
-	}else {
-		ienclst();
 	}
+	
+	errno = 0;
 }
 
 void wenclst() {
+	ienclst();
+	
 	int fd = open(ENC_LST, O_WRONLY);
 	
 	if(fd > 0) {
 		int i = 0;
 		
 		while(i++ < FDSC_MAXLEN) {
-			write(fd, enclst[i], FLNM_MAXLEN);
+			char* ent;
+
+			lstent(i, ent);
+
+			write(fd, ent, FLNM_MAXLEN);
 		}
 		
 		close(fd);
-	}else {
-		ienclst();
 	}
+
+	errno = 0;
 }
 
 int isencr(int fd) {

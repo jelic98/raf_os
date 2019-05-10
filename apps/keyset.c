@@ -9,11 +9,12 @@ int main(char* args) {
 	checkarg(args, 1);
 
 	renclst();
-	resterr();
-
+	
 	char* key = get_argv(args, 1);
 
 	keyset(key, strlen(key));
 	
 	checkerr();
+
+	_exit(0);
 }

@@ -82,7 +82,6 @@ char *get_argv(char *args, int argnum);
 void checkarg(char* args, int n);
 void printerr(int code);
 void checkerr();
-void resterr();
 
 #ifdef H_UTILS_IMPLEMENT
 
@@ -267,13 +266,8 @@ void printerr(int code) {
 void checkerr() {
 	if(errno) {
 		printerr(errno);
+		_exit(errno);
 	}
-
-	_exit(errno);
-}
-
-void resterr() {
-	errno = 0;
 }
 
 #endif

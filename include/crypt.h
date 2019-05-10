@@ -3,6 +3,7 @@
 
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #define KEY_MAXLEN 128
 #define ASCII_FIRST 32
@@ -11,7 +12,7 @@
 #define KEY_LVLS {1, 2, 3}
 #define ENC_LST "/root/list.cry"
 #define FLNM_MAXLEN 32
-#define FDSC_MAXLEN 512
+#define FDSC_MAXLEN 64
 
 #define keyok(x) (x[0] != 0)
 #define keylen(x) (1 << (x + 1))

@@ -7,5 +7,8 @@
 
 int main(char* args) {
 	keyclear();
+	
 	checkerr();
+
+	_exit(0);
 }

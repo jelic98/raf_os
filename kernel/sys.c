@@ -241,7 +241,7 @@ int sys_null(int nr)
 
 int sys_keyset(const char* key, int length) {
 	if(!keylenok(length)) {
-		// TODO return -EKEYLEN;
+		return -EKEYLEN;
 	}
 
 	int i;
@@ -259,7 +259,7 @@ int sys_keyclear() {
 	return 0;
 }
 
-int sys_keygen(int level) {
+int sys_keygen(int level) {	
 	int lvls[] = KEY_LVLS;
 	int lvlslen = sizeof(lvls) / sizeof(int);
 	int lvlok = 0;
@@ -300,7 +300,7 @@ int sys_encr(char* file, int length) {
 	if(!keyok(gkey)) {
 		return -EKEYNS;
 	}
-	
+
 	int i, j, k;
 
 	char txt[length];
@@ -442,4 +442,28 @@ int sys_decr(char* file, int length) {
 	}
 	
 	return 0;
+}
+
+int sys_encrlst(int fd, char* path, int length) {
+	int i;
+
+	for(i = 0; i < length; i++) {
+		enclst[fd][i] = get_fs_byte(path + i);
+	}
+}
+
+int sys_decrlst(int fd, char* path, int length) {
+	enclst[fd][0] = 0;
+}
+
+int sys_lstent(int fd, char* entry) {
+	int i;
+	
+	for(i = 0; i < FLNM_MAXLEN; i++) {
+		put_fs_byte(enclst[fd][i], entry + i);
+	}
+}
+
+int sys_uisencr(int fd) {
+	return isencr(fd);
 }
