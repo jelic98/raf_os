@@ -8,7 +8,7 @@
 int main(char* args) {
 	checkarg(args, 1);
 	
-	renclst();
+	initenclst();
 	
 	char* key = get_argv(args, 1);
 

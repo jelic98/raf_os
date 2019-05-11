@@ -239,13 +239,17 @@ int sys_null(int nr)
 #include <crypt.h>
 #include <random.h>
 
-int get_inum(int fd) {
+struct m_inode* get_inode(int fd) {
 	struct file * file = current->filp[fd];
 	
 	struct m_inode * inode;
 	inode = file->f_inode;
 
-	return inode->i_num;
+	return inode;
+}
+
+int get_inum(int fd) {
+	return get_inode(fd)->i_num;
 }
 
 int sys_keyset(const char* key, int length) {
@@ -481,24 +485,28 @@ int sys_encrlst(int fd, char* path, int length) {
 	int i;
 
 	int inum = get_inum(fd);
+	printk("ENCR: %d %d\n", fd, inum);
 
 	for(i = 0; i < length; i++) {
-		enclst[inum][i] = get_fs_byte(path + i);
+		*(enclst + inum + i) = get_fs_byte(path + i);
 	}
 }
 
 int sys_decrlst(int fd, char* path, int length) {
-	enclst[get_inum(fd)][0] = 0;
-}
-
-int sys_lstent(int fd, char* entry) {
-	int i;
-	
-	for(i = 0; i < FLNM_MAXLEN; i++) {
-		put_fs_byte(enclst[fd][i], entry + i);
-	}
+	*(enclst + get_inum(fd)) = 0;
 }
 
 int sys_uisencr(int fd) {
 	return isencr(get_inum(fd));
+}
+
+int sys_initenclst() {
+	if(!enclst) {
+		struct m_inode* inode = iget(0x301, 1);
+		int bnum = new_block(inode->i_dev);
+		struct buffer_head* bh = bread(inode->i_dev, bnum);
+		iput(inode);
+
+		enclst = bh->b_data;
+	}
 }

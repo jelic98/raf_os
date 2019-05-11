@@ -66,7 +66,5 @@ int main(char* args) {
 		println(MSG_FILE_ERROR);
 	}
 
-	wenclst();
-
 	_exit(0);
 }
