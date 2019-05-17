@@ -419,7 +419,7 @@ int sys_decr(char* file, int length, int scall) {
 	}
 
     int m = strlen(gkey);
-    int n = length / m;
+    int n = length / m + (length % m != 0);
 
 	char hed[m];
 	strcpy(hed, gkey);
@@ -441,12 +441,14 @@ int sys_decr(char* file, int length, int scall) {
 			}
 		}	
 	}
+	
+	for(i = 0; i < n; i++) {
+        for(j = 0; j < m; j++) {
+            k = j * n + i;
 
-	for(k = 0, j = 0; j < m; j++) {
-		for(i = 0; i < n; i++) {
-			copmat[i][j] = mat[i][j] = cip[k++];
-		}
-	}	
+			copmat[i][j] = mat[i][j] = cip[k];
+        }
+	}
 
 	for(k = 0; k < m; k++) {
 		for(j = 0; j < m; j++) {
@@ -485,7 +487,6 @@ int sys_encrlst(int fd, char* path, int length) {
 	int i;
 
 	int inum = get_inum(fd);
-	printk("ENCR: %d %d\n", fd, inum);
 
 	for(i = 0; i < length; i++) {
 		*(enclst + inum + i) = get_fs_byte(path + i);
@@ -505,8 +506,21 @@ int sys_initenclst() {
 		struct m_inode* inode = iget(0x301, 1);
 		int bnum = new_block(inode->i_dev);
 		struct buffer_head* bh = bread(inode->i_dev, bnum);
+		int start = bnum;
+		int safety = BLK_SAFETY;
+			
+		while(*(bh->b_data) != LST_START && safety--) {
+			bh = bread(inode->i_dev, --bnum);
+		}
+
+		if(!safety) {
+			bh = bread(inode->i_dev, start);
+		}
+
+		bh->b_dirt = 1;
 		iput(inode);
 
-		enclst = bh->b_data;
+		enclst = bh->b_data + 1;
+		*(enclst - 1) = LST_START;
 	}
 }

@@ -9,10 +9,12 @@
 #define ASCII_FIRST 32
 #define ASCII_LAST 126
 #define PAD_CHR '~'
+#define LST_START '!'
 #define KEY_LVLS {1, 2, 3}
 #define ENC_LST "/root/list.cry"
 #define FLNM_MAXLEN 32
 #define FDSC_MAXLEN 32
+#define BLK_SAFETY 16
 
 #define keyok(x) (x[0] != 0)
 #define keylen(x) (1 << (x + 1))
