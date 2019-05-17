@@ -497,6 +497,10 @@ int sys_decrlst(int fd, char* path, int length) {
 	*(enclst + get_inum(fd)) = 0;
 }
 
+int isencr(int inum) {
+	return *(enclst + inum);
+}
+
 int sys_uisencr(int fd) {
 	return isencr(get_inum(fd));
 }
@@ -504,23 +508,11 @@ int sys_uisencr(int fd) {
 int sys_initenclst() {
 	if(!enclst) {
 		struct m_inode* inode = iget(0x301, 1);
-		int bnum = new_block(inode->i_dev);
+		//int bnum = new_block(inode->i_dev);
+		int bnum = 9810;
 		struct buffer_head* bh = bread(inode->i_dev, bnum);
-		int start = bnum;
-		int safety = BLK_SAFETY;
-			
-		while(*(bh->b_data) != LST_START && safety--) {
-			bh = bread(inode->i_dev, --bnum);
-		}
-
-		if(!safety) {
-			bh = bread(inode->i_dev, start);
-		}
-
+		enclst = bh->b_data;
 		bh->b_dirt = 1;
 		iput(inode);
-
-		enclst = bh->b_data + 1;
-		*(enclst - 1) = LST_START;
 	}
 }
