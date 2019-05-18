@@ -33,8 +33,10 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 
 			// PROJEKAT
 			char* pc = p;
+			int len = strlen(pc) - 1;
+
 			if(keyok(gkey) && isencr(inode->i_num)) {
-				decr(pc, strlen(pc), 0);
+				decr(pc, len, 0);
 			}
 
 			while (chars-->0)
@@ -42,9 +44,9 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 
 			// PROJEKAT
 			if(keyok(gkey) && isencr(inode->i_num)) {
-				encr(pc, strlen(pc), 0);
+				encr(pc, len, 0);
 			}
-			
+
 			brelse(bh);
 		} else {
 			while (chars-->0)
@@ -88,19 +90,27 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 		}
 		i += c;
 
+		/*
 		// PROJEKAT
 		char* pc = bh->b_data;
+		int len_start = strlen(pc) - 1;
+		int len_end = len_start + c - 1;
+		
 		if(keyok(gkey) && isencr(inode->i_num)) {
-			decr(pc, strlen(pc), 0);
+			decr(pc, len_start, 0);
+			p--; // overwrite new line
 		}
+		*/
 
 		while (c-->0)
 			*(p++) = get_fs_byte(buf++);
 
+		/*
 		// PROJEKAT
 		if(keyok(gkey) && isencr(inode->i_num)) {
-			encr(pc, strlen(pc), 0);
+			encr(pc, len_end, 0);
 		}
+		*/
 
 		brelse(bh);
 	}

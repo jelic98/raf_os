@@ -289,9 +289,8 @@ int sys_keygen(int level) {
 		return -EKEYLVL;
 	}
 	
-	memset(gkey, 0, sizeof(gkey));
-
 	int len = keylen(level);
+	char key[len + 1];
 	char used[127] = {0};
 	char c;
 
@@ -300,11 +299,11 @@ int sys_keygen(int level) {
 			c = (rand() % (ASCII_LAST - ASCII_FIRST + 1)) + ASCII_FIRST;
 		}while(used[c]);
 
+		key[i] = c;
 		used[c] = 1;
-		gkey[i] = c;
 	}
 
-	printk("%s\n", gkey);
+	printk("%s\n", key);
 
 	return 0;
 }

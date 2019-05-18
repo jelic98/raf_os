@@ -43,6 +43,8 @@ int main(char* args) {
 		int blen;
 
 		while((blen = read(fd, buf, BLOCK_LENGTH)) > 0) {
+			blen -= blen < BLOCK_LENGTH;
+			
 			decr(buf, blen, 1);
 			checkerr();
 

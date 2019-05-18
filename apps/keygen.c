@@ -8,11 +8,9 @@
 int main(char* args) {
 	checkarg(args, 1);
 	
-	initenclst();
-	
-	char* key = get_argv(args, 1);
+	char* level = get_argv(args, 1);
 
-	keygen(atoi(key));
+	keygen(atoi(level));
 
 	checkerr();
 
