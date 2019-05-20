@@ -91,29 +91,33 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 		i += c;
 
 		// PROJEKAT
-		char* pc = p;
-		int len_start = c;
+		char* pc = bh->b_data;
+		int len_start = pos - c - 1;
 		int len_end = len_start;
 		
 		if(filp->f_flags & O_APPEND) {
-			len_end += pos - c - 1;
+			len_end += c;
 			len_end %= BLOCK_SIZE;
 		}
-	
-		printk("LEN %d %d %d\n", len_start, len_end, pc);
 
 		if(keyok(gkey) && isencr(inode->i_num)) {
+			printk("PC1: %s\n", pc);
 			decr(pc, len_start, 0);
+			printk("PC2: %s\n", pc);
 			p--; // overwrite new line
 		}
 
 		while (c-->0)
 			*(p++) = get_fs_byte(buf++);
-
+		
+		printk("PC3: %s\n", pc);
+	
 		// PROJEKAT
 		if(keyok(gkey) && isencr(inode->i_num)) {
 			encr(pc, len_end, 0);
 		}
+		
+		printk("PC4: %s\n", pc);
 
 		brelse(bh);
 	}

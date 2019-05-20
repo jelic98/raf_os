@@ -483,8 +483,6 @@ int sys_decr(char* file, int length, int scall) {
 		}
 	}
 
-	printk("DEC: %d %d %d %d\n", length, k, n, m);
-	
 	return 0;
 }
 
