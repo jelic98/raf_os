@@ -313,6 +313,8 @@ int sys_encr(char* file, int length, int scall) {
 		return -EKEYNS;
 	}
 
+	length -= length < BLOCK_SIZE;		
+
 	int i, j, k;
 
 	char txtarr[length];
@@ -341,7 +343,7 @@ int sys_encr(char* file, int length, int scall) {
     char copmat[n][m];
 	
 	char tmp;
-
+	
 	for(k = 0; k < m - 1; k++) {
 		for(j = 0; j < m - k - 1; j++) {
 			if(shed[j] > shed[j + 1]) {
@@ -385,7 +387,7 @@ int sys_encr(char* file, int length, int scall) {
 			cip[k++] = mat[i][j];
 		}
 	}
-
+	
 	for(i = 0; i < k; i++) {
 		if(scall) {
 			put_fs_byte(cip[i], file + i);
@@ -401,6 +403,8 @@ int sys_decr(char* file, int length, int scall) {
 	if(!keyok(gkey)) {
 		return -EKEYNS;
 	}
+
+	length -= length < BLOCK_SIZE;		
 	
 	int i, j, k;
 	
@@ -478,6 +482,8 @@ int sys_decr(char* file, int length, int scall) {
 			file[i] = txt[i];
 		}
 	}
+
+	printk("DEC: %d %d %d %d\n", length, k, n, m);
 	
 	return 0;
 }

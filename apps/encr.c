@@ -43,8 +43,6 @@ int main(char* args) {
 		int blen;
 
 		while((blen = read(fd, buf, BLOCK_LENGTH)) > 0) {
-			blen -= blen < BLOCK_LENGTH;
-
 			encr(buf, blen, 1);
 			checkerr();
 
@@ -57,6 +55,8 @@ int main(char* args) {
 	}else {
 		println(MSG_FILE_ERROR);
 	}
+	
+	file[strlen(file) - 1] = 0;
 
 	fd = open(path, O_WRONLY);
 	
