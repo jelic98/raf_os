@@ -41,7 +41,7 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 			
 			while (chars-->0)
 				put_fs_byte(*(p++),buf++);
-
+			
 			// PROJEKAT
 			if(keyok(gkey) && isencr(inode->i_num)) {
 				encr(pc, len_start, 0);
@@ -96,29 +96,22 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 		int len_end = len_start;
 		
 		if(filp->f_flags & O_APPEND) {
-			len_end += c;
-			len_end %= BLOCK_SIZE;
+			len_end = pos % BLOCK_SIZE;
 		}
 
 		if(keyok(gkey) && isencr(inode->i_num)) {
-			printk("PC1: %s\n", pc);
 			decr(pc, len_start, 0);
-			printk("PC2: %s\n", pc);
 			p--; // overwrite new line
 		}
 
 		while (c-->0)
 			*(p++) = get_fs_byte(buf++);
-		
-		printk("PC3: %s\n", pc);
 	
 		// PROJEKAT
 		if(keyok(gkey) && isencr(inode->i_num)) {
 			encr(pc, len_end, 0);
 		}
 		
-		printk("PC4: %s\n", pc);
-
 		brelse(bh);
 	}
 	inode->i_mtime = CURRENT_TIME;
