@@ -144,6 +144,7 @@
 #define __NR_decrlst	236
 #define __NR_uisencr	238
 #define __NR_initenclst	239
+#define __NR_ignorecrypt 240
 
 #define _syscall0(type,name) \
 type name(void) \
@@ -274,5 +275,6 @@ int encrlst(int fd, char* path, int length);
 int decrlst(int fd, char* path, int length);
 int uisencr(int fd);
 int initenclst();
+int ignorecrypt();
 
 #endif

@@ -21,6 +21,7 @@
 
 char gkey[KEY_MAXLEN];
 char* enclst;
+int igncry;
 
 int isencr(int inum);
 

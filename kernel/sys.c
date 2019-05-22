@@ -494,10 +494,13 @@ int sys_encrlst(int fd, char* path, int length) {
 	for(i = 0; i < length; i++) {
 		*(enclst + inum + i) = get_fs_byte(path + i);
 	}
+
+	return 0;
 }
 
 int sys_decrlst(int fd, char* path, int length) {
 	*(enclst + get_inum(fd)) = 0;
+	return 0;
 }
 
 int isencr(int inum) {
@@ -518,4 +521,12 @@ int sys_initenclst() {
 		bh->b_dirt = 1;
 		iput(inode);
 	}
+
+	return 0;
+}
+
+int sys_ignorecrypt(int ignore) {
+	igncry = ignore;
+
+	return 0;
 }

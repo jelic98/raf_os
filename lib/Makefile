@@ -25,7 +25,7 @@ CPP	=gcc -E -nostdinc -I../include
 	-c -o $*.o $<
 
 OBJS  = ctype.o _exit.o open.o close.o errno.o write.o dup.o setsid.o \
-	execve.o wait.o string.o read.o random.o keyset.o keyclear.o keygen.o encr.o decr.o encrlst.o decrlst.o uisencr.o initenclst.o
+	execve.o wait.o string.o read.o random.o keyset.o keyclear.o keygen.o encr.o decr.o encrlst.o decrlst.o uisencr.o initenclst.o ignorecrypt.o
 
 lib.a: $(OBJS)
 	$(AR) rcs lib.a $(OBJS)

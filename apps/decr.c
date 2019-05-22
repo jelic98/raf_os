@@ -24,12 +24,14 @@ void get_path(char* args, char* res) {
 
 int main(char* args) {
 	checkarg(args, 1);
+
+	ignorecrypt(1);
 	
 	char file[FILE_LENGTH];
 
 	char path[FLNM_MAXLEN];
 	get_path(args, path);
-	
+
 	int fd = open(path, O_RDONLY);
 
 	if(fd > 0) {
@@ -67,6 +69,8 @@ int main(char* args) {
 	}else {
 		println(MSG_FILE_ERROR);
 	}
+
+	ignorecrypt(0);
 
 	_exit(0);
 }

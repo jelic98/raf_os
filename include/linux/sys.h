@@ -85,6 +85,7 @@ extern int sys_encrlst();
 extern int sys_decrlst();
 extern int sys_uisencr();
 extern int sys_initenclst();
+extern int sys_ignorecrypt();
 
 fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
 sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
@@ -133,7 +134,7 @@ sys_null,sys_null,sys_null,sys_null,sys_null,
 sys_null,sys_null,sys_null,sys_null,sys_null,
 /* 230 */sys_keyset,sys_keyclear,sys_keygen,sys_encr,sys_decr,
 sys_encrlst,sys_decrlst,sys_null,sys_uisencr,sys_initenclst,
-/* 240 */sys_null,sys_null,sys_null,sys_null,sys_null,
+/* 240 */sys_ignorecrypt,sys_null,sys_null,sys_null,sys_null,
 sys_null,sys_null,sys_null,sys_null,sys_null,
 /* 250 */sys_null,sys_null,sys_null,sys_null,sys_null,
 sys_null,sys_null,sys_null,sys_null,sys_null,
