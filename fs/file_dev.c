@@ -37,6 +37,7 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 
 			if(!igncry && keyok(gkey) && isencr(inode->i_num)) {
 				decr(pc, len_start, 0);
+				chars--;
 			}
 			
 			while (chars-->0)
@@ -101,7 +102,8 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 
 		if(!igncry && keyok(gkey) && isencr(inode->i_num)) {
 			decr(pc, len_start, 0);
-			p--; // overwrite new line
+			c--;
+			p--;
 		}
 
 		while (c-->0)
