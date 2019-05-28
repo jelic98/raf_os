@@ -25,6 +25,9 @@ char gkey[KEY_MAXLEN];
 char* enclst;
 int igncry;
 long global_timeout;
+char tmpkey[KEY_MAXLEN];
+int tmpindex;
+int keycatch;
 
 int isencr(int inum);
 

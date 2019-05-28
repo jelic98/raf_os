@@ -23,6 +23,7 @@
 #define STRING_END '\0'
 #define NEW_LINE '\n'
 #define NEW_LINE_STRING "\n"
+#define LINE_FEED 10
 
 #define MSG_FILE_NAME "File name: \0"
 #define MSG_FILE_ERROR "Cannot open selected file\0"
@@ -216,11 +217,9 @@ void printnum(int num) {
 }
 
 void pause() {
-	char b[10];
+	char b[1];
 	
-	print("Press enter to continue...");
-	
-	read(STD_IN, b, 10);
+	read(STD_IN, b, 1);
 }
 
 int get_argc(char* args) {

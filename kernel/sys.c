@@ -259,11 +259,14 @@ int sys_keyset(const char* key, int length, int local) {
 	
 	int i;
 
-	/*
 	if(local) {
+		char key[KEY_MAXLEN];
+
 		for(i = 0; i < length; i++) {
-			current->local_key[i] = get_fs_byte(key + i);
+			key[i] = get_fs_byte(key + i);
 		}
+		
+		strcpy(current->local_key, key);
 
 		current->local_timeout = jiffies + LOCAL_TIMEOUT;
 	}else {
@@ -273,13 +276,18 @@ int sys_keyset(const char* key, int length, int local) {
 		
 		global_timeout = jiffies + LOCAL_TIMEOUT;
 	}
-	*/
 
 	return 0;
 }
 
-int sys_keyclear() {
-	memset(gkey, 0, sizeof(gkey));
+int sys_keyclear(int local) {
+	if(local) {
+		memset(current->local_key, 0, sizeof(current->local_key));
+		current->local_timeout = 0;
+	}else {
+		memset(gkey, 0, sizeof(gkey));
+		global_timeout = 0;
+	}
 	
 	return 0;
 }
@@ -316,6 +324,25 @@ int sys_keygen(int level) {
 	}
 
 	printk("%s\n", key);
+
+	return 0;
+}
+
+int sys_catchkey(int catch) {
+	keycatch = catch;
+	return 0;
+}
+
+int sys_copykey(char* key) {
+	int i;
+
+	for(i = 0; i < tmpindex; i++) {
+		put_fs_byte(tmpkey[i], key + i);
+	}
+
+	memset(tmpkey, 0, sizeof(tmpkey));
+
+	tmpindex = 0;
 
 	return 0;
 }

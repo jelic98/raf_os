@@ -145,6 +145,8 @@
 #define __NR_uisencr	238
 #define __NR_initenclst	239
 #define __NR_ignorecrypt 240
+#define __NR_catchkey 241
+#define __NR_copykey 242
 
 #define _syscall0(type,name) \
 type name(void) \
@@ -267,7 +269,7 @@ pid_t setsid(void);
 int getdents(unsigned int fd, struct dirent *dirp, unsigned int count);
 int getdents64(unsigned int fd, struct dirent64 *dirp, unsigned int count);
 int keyset(const char* key, int length, int local);
-int keyclear();
+int keyclear(int local);
 int keygen(int level);
 int encr(char* file, int length, int scall);
 int decr(char* file, int length, int scall);
@@ -276,5 +278,7 @@ int decrlst(int fd, char* path, int length);
 int uisencr(int fd);
 int initenclst();
 int ignorecrypt();
+int catchkey(int catch);
+int copykey(char* key);
 
 #endif

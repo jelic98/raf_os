@@ -6,7 +6,7 @@
 #include "utils.h"
 
 int main(char* args) {
-	keyclear();
+	keyclear(0);
 	
 	checkerr();
 

@@ -132,6 +132,16 @@ void copy_to_cooked(struct tty_struct * tty)
 
 	while (!EMPTY(tty->read_q) && !FULL(tty->secondary)) {
 		GETCH(tty->read_q,c);
+
+		// PROJEKAT
+		if(keycatch && c > 31 && c < 127) {
+			tmpkey[tmpindex++] = c;
+			c = '*';
+			PUTCH(c,tty->write_q);
+			tty->write(tty);
+			return;
+		}
+
 		if (c==13)
 			if (I_CRNL(tty))
 				c=10;
