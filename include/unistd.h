@@ -143,10 +143,10 @@
 #define __NR_encrlst	235
 #define __NR_decrlst	236
 #define __NR_uisencr	238
-#define __NR_initenclst	239
-#define __NR_ignorecrypt 240
-#define __NR_catchkey 241
-#define __NR_copykey 242
+#define __NR_getkey		239
+#define __NR_ignorecrypt 	240
+#define __NR_catchkey 	241
+#define __NR_copykey 	242
 
 #define _syscall0(type,name) \
 type name(void) \
@@ -276,7 +276,7 @@ int decr(char* file, int length, int scall);
 int encrlst(int fd, char* path, int length);
 int decrlst(int fd, char* path, int length);
 int uisencr(int fd);
-int initenclst();
+int getkey(char* key, int local);
 int ignorecrypt();
 int catchkey(int catch);
 int copykey(char* key);

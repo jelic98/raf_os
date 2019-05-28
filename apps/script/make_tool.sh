@@ -8,8 +8,8 @@ sleep .5
 sudo umount tmp_hd
 rmdir tmp_hd
 rm apps/$1
-echo '[SUCCESS] Application compiled'
+echo '[SUCCESS] Tool compiled'
 else
-echo '[FAIL] Application cannot compile'
+echo '[FAIL] Tool cannot compile'
 exit 1
 fi

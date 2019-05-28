@@ -84,7 +84,7 @@ extern int sys_decr();
 extern int sys_encrlst();
 extern int sys_decrlst();
 extern int sys_uisencr();
-extern int sys_initenclst();
+extern int sys_getkey();
 extern int sys_ignorecrypt();
 extern int sys_catchkey();
 extern int sys_copykey();
@@ -135,7 +135,7 @@ sys_null,sys_null,sys_null,sys_null,sys_null,
 /* 220 */sys_getdents64,sys_fcntl64,sys_null,sys_null,sys_null,
 sys_null,sys_null,sys_null,sys_null,sys_null,
 /* 230 */sys_keyset,sys_keyclear,sys_keygen,sys_encr,sys_decr,
-sys_encrlst,sys_decrlst,sys_null,sys_uisencr,sys_initenclst,
+sys_encrlst,sys_decrlst,sys_null,sys_uisencr,sys_getkey,
 /* 240 */sys_ignorecrypt,sys_catchkey,sys_copykey,sys_null,sys_null,
 sys_null,sys_null,sys_null,sys_null,sys_null,
 /* 250 */sys_null,sys_null,sys_null,sys_null,sys_null,

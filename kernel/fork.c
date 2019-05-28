@@ -75,6 +75,11 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 #else
 	memcpy(p, current, sizeof(struct task_struct));
 #endif
+	
+	// PROJEKAT
+	p->local_timeout = 0;
+	memset(p->local_key, 0, sizeof(p->local_key));
+	
 	p->state = TASK_RUNNING;
 	p->pid = last_pid;
 	p->father = current->pid;

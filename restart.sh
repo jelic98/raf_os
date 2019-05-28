@@ -3,7 +3,7 @@ make clean
 if make; then
 if [[ $1 == 1 ]] ; then
 cd apps
-./run_tools.sh
+./restart.sh
 cd ..
 fi
 fi

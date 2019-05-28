@@ -6,13 +6,11 @@
 #include "utils.h"
 
 int main(char* args) {
-	initenclst();
-
 	char key[KEY_MAXLEN];
 	
 	catchkey(1), pause(), copykey(key), catchkey(0);
 
-	keyset(key, strlen(key), strcmp("local", get_argv(args, 1)) ? 0 : 1);
+	keyset(key, strlen(key), 0);
 		
 	checkerr();
 

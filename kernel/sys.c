@@ -252,6 +252,41 @@ int get_inum(int fd) {
 	return get_inode(fd)->i_num;
 }
 
+int init_enclst() {
+	if(!enclst) {
+		struct m_inode* inode = iget(0x301, 1);
+		//int bnum = new_block(inode->i_dev);
+		int bnum = 9810;
+		struct buffer_head* bh = bread(inode->i_dev, bnum);
+		enclst = bh->b_data;
+		bh->b_dirt = 1;
+		iput(inode);
+	}
+
+	return 0;
+}
+
+int sys_getkey(char* key, int local) {
+	int i;
+	int length;
+
+	if(local) {
+		length = strlen(current->local_key);
+
+		for(i = 0; i < length; i++) {
+			put_fs_byte(current->local_key[i], key + i);
+		}
+	}else {
+		length = strlen(gkey);
+		
+		for(i = 0; i < length; i++) {
+			put_fs_byte(gkey[i], key + i);
+		}
+	}
+
+	return 0;
+}
+
 int sys_keyset(const char* key, int length, int local) {
 	if(!keylenok(length)) {
 		return -EKEYLEN;
@@ -260,13 +295,13 @@ int sys_keyset(const char* key, int length, int local) {
 	int i;
 
 	if(local) {
-		char key[KEY_MAXLEN];
+		char lockey[KEY_MAXLEN];
 
 		for(i = 0; i < length; i++) {
-			key[i] = get_fs_byte(key + i);
+			lockey[i] = get_fs_byte(key + i);
 		}
 		
-		strcpy(current->local_key, key);
+		strcpy(current->local_key, lockey);
 
 		current->local_timeout = jiffies + LOCAL_TIMEOUT;
 	}else {
@@ -274,8 +309,10 @@ int sys_keyset(const char* key, int length, int local) {
 			gkey[i] = get_fs_byte(key + i);
 		}
 		
-		global_timeout = jiffies + LOCAL_TIMEOUT;
+		global_timeout = jiffies + GLOBAL_TIMEOUT;
 	}
+
+	init_enclst();
 
 	return 0;
 }
@@ -548,20 +585,6 @@ int isencr(int inum) {
 
 int sys_uisencr(int fd) {
 	return isencr(get_inum(fd));
-}
-
-int sys_initenclst() {
-	if(!enclst) {
-		struct m_inode* inode = iget(0x301, 1);
-		//int bnum = new_block(inode->i_dev);
-		int bnum = 9810;
-		struct buffer_head* bh = bread(inode->i_dev, bnum);
-		enclst = bh->b_data;
-		bh->b_dirt = 1;
-		iput(inode);
-	}
-
-	return 0;
 }
 
 int sys_ignorecrypt(int ignore) {
