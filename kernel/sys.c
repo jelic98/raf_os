@@ -252,16 +252,28 @@ int get_inum(int fd) {
 	return get_inode(fd)->i_num;
 }
 
-int sys_keyset(const char* key, int length) {
+int sys_keyset(const char* key, int length, int local) {
 	if(!keylenok(length)) {
 		return -EKEYLEN;
 	}
-
-	int i;
 	
-	for(i = 0; i < length; i++) {
-		gkey[i] = get_fs_byte(key + i);
+	int i;
+
+	/*
+	if(local) {
+		for(i = 0; i < length; i++) {
+			current->local_key[i] = get_fs_byte(key + i);
+		}
+
+		current->local_timeout = jiffies + LOCAL_TIMEOUT;
+	}else {
+		for(i = 0; i < length; i++) {
+			gkey[i] = get_fs_byte(key + i);
+		}
+		
+		global_timeout = jiffies + LOCAL_TIMEOUT;
 	}
+	*/
 
 	return 0;
 }

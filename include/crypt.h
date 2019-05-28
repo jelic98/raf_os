@@ -13,6 +13,8 @@
 #define KEY_LVLS {1, 2, 3}
 #define FLNM_MAXLEN 32
 #define FDSC_MAXLEN 32
+#define LOCAL_TIMEOUT 45*HZ
+#define GLOBAL_TIMEOUT 120*HZ
 
 #define keyok(x) (x[0] != 0)
 #define keylen(x) (1 << (x + 1))
@@ -22,6 +24,7 @@
 char gkey[KEY_MAXLEN];
 char* enclst;
 int igncry;
+long global_timeout;
 
 int isencr(int inum);
 

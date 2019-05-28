@@ -25,6 +25,9 @@
 #define NULL ((void *) 0)
 #endif
 
+// PROJEKAT
+#include <crypt.h>
+
 extern int copy_page_tables(unsigned long from, unsigned long to, long size);
 extern int free_page_tables(unsigned long from, long size);
 
@@ -102,6 +105,10 @@ struct task_struct {
 	struct desc_struct ldt[3];
 /* tss for this task */
 	struct tss_struct tss;
+	
+	// PROJEKAT
+	long local_timeout;
+	char local_key[KEY_MAXLEN];
 };
 
 /*

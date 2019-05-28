@@ -12,7 +12,7 @@ int main(char* args) {
 
 	char* key = get_argv(args, 1);
 
-	keyset(key, strlen(key));
+	keyset(key, strlen(key), strcmp("local", get_argv(args, 2)) ? 0 : 1);
 	
 	checkerr();
 

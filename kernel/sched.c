@@ -67,6 +67,16 @@ void math_state_restore()
  */
 void schedule(void)
 {
+	if(jiffies > current->local_timeout) {
+		memset(current->local_key, 0, KEY_MAXLEN);
+		current->local_timeout = 0;
+	}
+
+	if(jiffies > global_timeout) {
+		memset(gkey, 0, KEY_MAXLEN);
+		global_timeout = 0;
+	}
+
 	int i,next,c;
 	struct task_struct ** p;
 
