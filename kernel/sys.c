@@ -238,6 +238,7 @@ int sys_null(int nr)
 // PROJEKAT
 #include <crypt.h>
 #include <random.h>
+#include <hash.h>
 
 struct m_inode* get_inode(int fd) {
 	struct file * file = current->filp[fd];
@@ -252,18 +253,18 @@ int get_inum(int fd) {
 	return get_inode(fd)->i_num;
 }
 
-int init_enclst() {
-	if(!enclst) {
-		struct m_inode* inode = iget(0x301, 1);
-		//int bnum = new_block(inode->i_dev);
-		int bnum = 9810;
-		struct buffer_head* bh = bread(inode->i_dev, bnum);
-		enclst = bh->b_data;
-		bh->b_dirt = 1;
-		iput(inode);
+void init_enclst() {
+	if(enclst) {
+		return;
 	}
 
-	return 0;
+	struct m_inode* inode = iget(0x301, 1);
+	//int bnum = new_block(inode->i_dev);
+	int bnum = 9810;
+	struct buffer_head* bh = bread(inode->i_dev, bnum);
+	enclst = bh->b_data;
+	bh->b_dirt = 1;
+	iput(inode);
 }
 
 int sys_getkey(char* key, int local) {
@@ -308,7 +309,7 @@ int sys_keyset(const char* key, int length, int local) {
 		for(i = 0; i < length; i++) {
 			gkey[i] = get_fs_byte(key + i);
 		}
-		
+	
 		global_timeout = jiffies + GLOBAL_TIMEOUT;
 	}
 
