@@ -36,4 +36,11 @@ char tmpkey[KEY_MAXLEN];
 int tmpindex;
 int keycatch;
 
+static struct m_inode* get_inode(int fd);
+static int get_inum(int fd);
+int keymatch(int fd, char* key);
+int isencr(int inum);
+void init_enclst();
+void edit_enclst(int fd, int encrypt);
+
 #endif

@@ -241,79 +241,6 @@ int sys_null(int nr)
 #include <hash.h>
 #include <utils.h>
 
-struct m_inode* get_inode(int fd) {
-	struct file * file = current->filp[fd];
-	
-	struct m_inode * inode;
-	inode = file->f_inode;
-
-	return inode;
-}
-
-int get_inum(int fd) {
-	return get_inode(fd)->i_num;
-}
-
-int isencr(int inum) {	
-	int i;
-
-	for(i = 0; i < LST_MAXLEN; i++) {
-		printk("INUM: %d KEY HASH: %s ENCRYPTED: %d\n", *enc_list[i].inum, enc_list[i].key, *enc_list[i].encrypted);
-
-		if(*enc_list[i].inum == inum) {
-			return *enc_list[i].encrypted;
-		}
-	}
-
-	return 0;
-}
-
-void init_enclst() {
-	static int inited = 0;
-
-	if(inited++) {
-		return;
-	}
-
-	struct m_inode* inode = iget(0x301, 1);
-	int bnum = new_block(inode->i_dev); // NOTE: Run only once!
-	//int bnum = 9810;
-	printk("BNUM: %d\n", bnum); // NOTE: Run only once!
-	struct buffer_head* bh = bread(inode->i_dev, bnum);
-	memset(bh->b_data, 0, sizeof(bh->b_data)); // NOTE: Run only once!
-	
-	int i;
-
-	for(i = 0; i < LST_MAXLEN; i++) {
-		enc_list[i].inum = bh->b_data + i * ENT_MAXLEN;
-		enc_list[i].encrypted = bh->b_data + i * ENT_MAXLEN + 1;
-		enc_list[i].key = bh->b_data + i * ENT_MAXLEN + 2;
-	}
-
-	bh->b_dirt = 1;
-	iput(inode);
-}
-
-void edit_enclst(int fd, int encrypt) {
-	int inum = get_inum(fd);
-	int i;
-
-	for(i = 0; i < LST_MAXLEN; i++) {
-		if(!*enc_list[i].inum && encrypt) {
-			*enc_list[i].inum = inum;
-			*enc_list[i].encrypted = encrypt;
-			strcpy(enc_list[i].key, gkey);
-			hash(enc_list[i].key);
-			break;
-		}
-
-		if(*enc_list[i].inum == inum) {
-			*enc_list[i].encrypted = encrypt;
-			break;
-		}
-	}
-}
-
 int sys_getkey(char* key, int local) {
 	int i;
 	int length;
@@ -623,7 +550,7 @@ int sys_decrlst(int fd) {
 }
 
 int sys_uisencr(int fd) {
-	return isencr(get_inum(fd));
+	return isencr(fd);
 }
 
 int sys_ignorecrypt(int ignore) {
