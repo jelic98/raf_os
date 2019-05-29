@@ -64,7 +64,7 @@ int main(char* args) {
 	
 	if(fd > 0) {
 		write(fd, file, strlen(file));
-		encrlst(fd, path, strlen(path));
+		encrlst(fd);
 		close(fd);
 	}else {
 		println(MSG_FILE_ERROR);

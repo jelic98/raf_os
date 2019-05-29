@@ -239,6 +239,7 @@ int sys_null(int nr)
 #include <crypt.h>
 #include <random.h>
 #include <hash.h>
+#include <utils.h>
 
 struct m_inode* get_inode(int fd) {
 	struct file * file = current->filp[fd];
@@ -253,18 +254,64 @@ int get_inum(int fd) {
 	return get_inode(fd)->i_num;
 }
 
+int isencr(int inum) {	
+	int i;
+
+	for(i = 0; i < LST_MAXLEN; i++) {
+		printk("INUM: %d KEY HASH: %s ENCRYPTED: %d\n", *enc_list[i].inum, enc_list[i].key, *enc_list[i].encrypted);
+
+		if(*enc_list[i].inum == inum) {
+			return *enc_list[i].encrypted;
+		}
+	}
+
+	return 0;
+}
+
 void init_enclst() {
-	if(enclst) {
+	static int inited = 0;
+
+	if(inited++) {
 		return;
 	}
 
 	struct m_inode* inode = iget(0x301, 1);
-	//int bnum = new_block(inode->i_dev);
-	int bnum = 9810;
+	int bnum = new_block(inode->i_dev); // NOTE: Run only once!
+	//int bnum = 9810;
+	printk("BNUM: %d\n", bnum); // NOTE: Run only once!
 	struct buffer_head* bh = bread(inode->i_dev, bnum);
-	enclst = bh->b_data;
+	memset(bh->b_data, 0, sizeof(bh->b_data)); // NOTE: Run only once!
+	
+	int i;
+
+	for(i = 0; i < LST_MAXLEN; i++) {
+		enc_list[i].inum = bh->b_data + i * ENT_MAXLEN;
+		enc_list[i].encrypted = bh->b_data + i * ENT_MAXLEN + 1;
+		enc_list[i].key = bh->b_data + i * ENT_MAXLEN + 2;
+	}
+
 	bh->b_dirt = 1;
 	iput(inode);
+}
+
+void edit_enclst(int fd, int encrypt) {
+	int inum = get_inum(fd);
+	int i;
+
+	for(i = 0; i < LST_MAXLEN; i++) {
+		if(!*enc_list[i].inum && encrypt) {
+			*enc_list[i].inum = inum;
+			*enc_list[i].encrypted = encrypt;
+			strcpy(enc_list[i].key, gkey);
+			hash(enc_list[i].key);
+			break;
+		}
+
+		if(*enc_list[i].inum == inum) {
+			*enc_list[i].encrypted = encrypt;
+			break;
+		}
+	}
 }
 
 int sys_getkey(char* key, int local) {
@@ -313,7 +360,7 @@ int sys_keyset(const char* key, int length, int local) {
 		global_timeout = jiffies + GLOBAL_TIMEOUT;
 	}
 
-	init_enclst();
+	init_enclst();	
 
 	return 0;
 }
@@ -563,25 +610,16 @@ int sys_decr(char* file, int length, int scall) {
 	return 0;
 }
 
-int sys_encrlst(int fd, char* path, int length) {
-	int i;
-
-	int inum = get_inum(fd);
-
-	for(i = 0; i < length; i++) {
-		*(enclst + inum + i) = get_fs_byte(path + i);
-	}
+int sys_encrlst(int fd) {	
+	edit_enclst(fd, 1);
 
 	return 0;
 }
 
-int sys_decrlst(int fd, char* path, int length) {
-	*(enclst + get_inum(fd)) = 0;
-	return 0;
-}
+int sys_decrlst(int fd) {
+	edit_enclst(fd, 0);
 
-int isencr(int inum) {
-	return *(enclst + inum);
+	return 0;
 }
 
 int sys_uisencr(int fd) {
