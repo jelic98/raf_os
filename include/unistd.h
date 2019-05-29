@@ -276,7 +276,7 @@ int decr(char* file, int length, int scall);
 int encrlst(int fd);
 int decrlst(int fd);
 int uisencr(int fd);
-int getkey(char* key, int local);
+int getkey(char* key, int local, int scall);
 int ignorecrypt();
 int catchkey(int catch);
 int copykey(char* key);

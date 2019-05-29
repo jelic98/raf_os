@@ -14,11 +14,11 @@ int main(char* args) {
 	
 	while(1) {
 		char global[KEY_MAXLEN];
-		getkey(global, 0);
+		getkey(global, 0, 1);
 		print(global);
 
 		char local[KEY_MAXLEN];
-		getkey(local, 1);
+		getkey(local, 1, 1);
 		print(local);
 	
 		pause();

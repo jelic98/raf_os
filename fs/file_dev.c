@@ -34,17 +34,24 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 			// PROJEKAT
 			char* pc = p;
 			int len_start = chars;
+			int inum = inode->i_num;
+			char key[KEY_MAXLEN];
+			
+			getkey(key, keytype, 0);
 
-			if(!igncry && keyok(gkey) && isencr(inode->i_num)) {
+			if(!igncry && keyok(key) && isencr(inum)) {
+				if(!keymatch(inum, key)) {
+					return -EINVAL;
+				}
+
 				decr(pc, len_start, 0);
 				chars--;
 			}
-			
+	
 			while (chars-->0)
 				put_fs_byte(*(p++),buf++);
 			
-			// PROJEKAT
-			if(!igncry && keyok(gkey) && isencr(inode->i_num)) {
+			if(!igncry && keyok(key) && isencr(inum)) {
 				encr(pc, len_start, 0);
 			}
 
@@ -95,12 +102,20 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 		char* pc = bh->b_data;
 		int len_start = pos - c - 1;
 		int len_end = len_start;
+		int inum = inode->i_num;
+		char key[KEY_MAXLEN];
+			
+		getkey(key, keytype, 0);
 		
 		if(filp->f_flags & O_APPEND) {
 			len_end = pos % BLOCK_SIZE;
 		}
 
-		if(!igncry && keyok(gkey) && isencr(inode->i_num)) {
+		if(!igncry && keyok(gkey) && isencr(inum)) {
+			if(!keymatch(inum, key)) {
+				return -EINVAL;
+			}
+
 			decr(pc, len_start, 0);
 			c--;
 			p--;
@@ -109,8 +124,7 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 		while (c-->0)
 			*(p++) = get_fs_byte(buf++);
 	
-		// PROJEKAT
-		if(!igncry && keyok(gkey) && isencr(inode->i_num)) {
+		if(!igncry && keyok(gkey) && isencr(inum)) {
 			encr(pc, len_end, 0);
 		}
 		

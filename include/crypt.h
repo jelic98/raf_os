@@ -20,6 +20,7 @@
 #define keyok(x) (x[0] != 0)
 #define keylen(x) (1 << (x + 1))
 #define keylenok(x) ((x > 0) && (x < KEY_MAXLEN) && ((x & (x - 1)) == 0))
+#define keytype current->local_key[0]
 #define isascii(x) ((x >= ASCII_FIRST) && (x <= ASCII_LAST))
 
 typedef struct enc_entry {
@@ -36,11 +37,6 @@ char tmpkey[KEY_MAXLEN];
 int tmpindex;
 int keycatch;
 
-static struct m_inode* get_inode(int fd);
-static int get_inum(int fd);
-int keymatch(int fd, char* key);
-int isencr(int inum);
-void init_enclst();
-void edit_enclst(int fd, int encrypt);
+int keymatch(int inum, char* key);
 
 #endif
