@@ -36,8 +36,6 @@ int tmpindex;
 int catchkey;
 
 void encrypt(char* args);
-void encrinode(struct m_inode* inode);
-void decrinode(struct m_inode* inode);
 void encrstr(char* s);
 void decrstr(char* s);
 void crypt(char* args, int encrypt);

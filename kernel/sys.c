@@ -236,12 +236,17 @@ int sys_null(int nr)
 }
 
 // PROJEKAT
+#include <sys/stat.h>
 #include <crypt.h>
 #include <random.h>
 #include <hash.h>
 
-struct m_inode* get_inode(int fd) {
-	struct file * file = current->filp[fd];
+static struct file* get_file(int fd) {
+	return current->filp[fd];
+}
+
+static struct m_inode* get_inode(int fd) {
+	struct file * file = get_file(fd);
 	
 	struct m_inode * inode;
 	inode = file->f_inode;
@@ -249,7 +254,7 @@ struct m_inode* get_inode(int fd) {
 	return inode;
 }
 
-int get_inum(int fd) {
+static int get_inum(int fd) {
 	return get_inode(fd)->i_num;
 }
 
@@ -267,7 +272,7 @@ int isencr(int inum) {
 	return 0;
 }
 
-void init_enclst() {
+static void init_enclst() {
 	static int inited = 0;
 
 	if(inited++) {
@@ -293,7 +298,7 @@ void init_enclst() {
 	iput(inode);
 }
 
-void edit_enclst(int fd, int encrypt) {
+static void edit_enclst(int fd, int encrypt) {
 	int inum = get_inum(fd);
 	int i;
 
@@ -311,6 +316,47 @@ void edit_enclst(int fd, int encrypt) {
 			break;
 		}
 	}
+}
+
+int krypt(int fd, int encrypt) {
+	if(!keyok(gkey)) {
+		return -EKEYNS;
+	}
+
+	struct m_inode* inode = get_inode(fd);
+
+	if(S_ISREG(inode->i_mode)) {
+		struct file* file = get_file(fd);
+		
+		int size = inode->i_size / BLOCK_SIZE;
+		size += inode->i_size % BLOCK_SIZE ? 1 : 0;
+
+		int i = 0;
+
+		while(i++ < size) {
+			int bnum = bmap(inode, i - 1);
+			
+			struct buffer_head* bh = bread(inode->i_dev, bnum);
+		
+			if(!bh) {
+				break;
+			}
+
+			if(encrypt) {
+				encrstr(bh->b_data);
+			}else {
+				decrstr(bh->b_data);
+			}
+
+			brelse(bh);
+		}	
+	}else if(S_ISDIR(inode->i_mode)) {
+		
+	}
+	
+	edit_enclst(fd, encrypt);
+
+	return 0;
 }
 
 int sys_keyset(const char* key, int length, int local) {
@@ -446,21 +492,9 @@ int sys_keyget(char* key, int local, int scall) {
 }
 
 int sys_encr(int fd) {
-	if(!keyok(gkey)) {
-		return -EKEYNS;
-	}
-
-	edit_enclst(fd, 1);
-	
-	return 0;
+	return krypt(fd, 1);
 }
 
 int sys_decr(int fd) {
-	if(!keyok(gkey)) {
-		return -EKEYNS;
-	}
-
-	edit_enclst(fd, 0);
-
-	return 0;
+	return krypt(fd, 0);
 }

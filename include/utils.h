@@ -11,8 +11,6 @@
 #define ARG_HOM -4
 #define ARG_EXE -5
 
-#define BLOCK_LENGTH 1024
-#define FILE_LENGTH 2048
 #define BUFFER_LENGTH 128
 #define ASCII_OFFSET 48
 #define ASCII_FIRST 32

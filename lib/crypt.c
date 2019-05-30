@@ -11,14 +11,6 @@ _syscall3(int,keyget,char*,key,int,local,int,scall)
 _syscall1(int,encr,int,fd)
 _syscall1(int,decr,int,fd)
 
-void encrinode(struct m_inode* inode) {
-
-}
-
-void decrinode(struct m_inode* inode) {
-
-}
-
 void encrstr(char* s) {
 	int length = strlen(s);
 	length -= length < BLOCK_SIZE;		

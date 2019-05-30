@@ -68,7 +68,6 @@ int sys_read(unsigned int fd,char * buf,int count)
 			count = inode->i_size - file->f_pos;
 		if (count<=0)
 		 	return 0;
-		// PROJEKAT
 		return file_read(inode,file,buf,count);
 	}
 	printk("(Read)inode->i_mode=%06o\n\r",inode->i_mode);
@@ -92,7 +91,6 @@ int sys_write(unsigned int fd,char * buf,int count)
 	if (S_ISBLK(inode->i_mode))
 		return block_write(inode->i_zone[0],&file->f_pos,buf,count);
 	if (S_ISREG(inode->i_mode))
-		// PROJEKAT
 		return file_write(inode,file,buf,count);
 	printk("(Write)inode->i_mode=%06o\n\r",inode->i_mode);
 	return -EINVAL;
