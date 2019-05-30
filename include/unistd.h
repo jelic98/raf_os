@@ -135,18 +135,16 @@
 #define __NR_fstat64	197
 #define __NR_getdents64	220
 #define __NR_fcntl64	221
-#define __NR_keyset	230
+
+// PROJEKAT
+#define __NR_keyset		230
 #define __NR_keyclear	231
-#define __NR_keygen	232
-#define __NR_encr	233
-#define __NR_decr	234
-#define __NR_encrlst	235
-#define __NR_decrlst	236
-#define __NR_uisencr	238
-#define __NR_getkey		239
-#define __NR_ignorecrypt 	240
-#define __NR_catchkey 	241
-#define __NR_copykey 	242
+#define __NR_keygen		232
+#define __NR_keycatch 	233
+#define __NR_keycopy 	234
+#define __NR_keyget		235
+#define __NR_encr	236
+#define __NR_decr	237
 
 #define _syscall0(type,name) \
 type name(void) \
@@ -268,17 +266,15 @@ pid_t getpgrp(void);
 pid_t setsid(void);
 int getdents(unsigned int fd, struct dirent *dirp, unsigned int count);
 int getdents64(unsigned int fd, struct dirent64 *dirp, unsigned int count);
+
+// PROJEKAT
 int keyset(const char* key, int length, int local);
 int keyclear(int local);
 int keygen(int level);
-int encr(char* file, int length, int scall);
-int decr(char* file, int length, int scall);
-int encrlst(int fd);
-int decrlst(int fd);
-int uisencr(int fd);
-int getkey(char* key, int local, int scall);
-int ignorecrypt();
-int catchkey(int catch);
-int copykey(char* key);
+int keycatch(int catch);
+int keycopy(char* key);
+int keyget(char* key, int local, int scall);
+int encr(int fd);
+int decr(int fd);
 
 #endif

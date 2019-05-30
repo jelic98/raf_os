@@ -37,9 +37,9 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 			int inum = inode->i_num;
 			char key[KEY_MAXLEN];
 			
-			getkey(key, keytype, 0);
+			keyget(key, keytype, 0);
 
-			if(!igncry && keyok(key) && isencr(inum)) {
+			if(keyok(key) && isencr(inum)) {
 				if(!keymatch(inum, key)) {
 					return -EINVAL;
 				}
@@ -51,7 +51,7 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 			while (chars-->0)
 				put_fs_byte(*(p++),buf++);
 			
-			if(!igncry && keyok(key) && isencr(inum)) {
+			if(keyok(key) && isencr(inum)) {
 				encr(pc, len_start, 0);
 			}
 
@@ -105,13 +105,13 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 		int inum = inode->i_num;
 		char key[KEY_MAXLEN];
 			
-		getkey(key, keytype, 0);
+		keyget(key, keytype, 0);
 		
 		if(filp->f_flags & O_APPEND) {
 			len_end = pos % BLOCK_SIZE;
 		}
 
-		if(!igncry && keyok(gkey) && isencr(inum)) {
+		if(keyok(gkey) && isencr(inum)) {
 			if(!keymatch(inum, key)) {
 				return -EINVAL;
 			}
@@ -124,7 +124,7 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 		while (c-->0)
 			*(p++) = get_fs_byte(buf++);
 	
-		if(!igncry && keyok(gkey) && isencr(inum)) {
+		if(keyok(gkey) && isencr(inum)) {
 			encr(pc, len_end, 0);
 		}
 		

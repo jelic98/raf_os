@@ -134,7 +134,7 @@ void copy_to_cooked(struct tty_struct * tty)
 		GETCH(tty->read_q,c);
 
 		// PROJEKAT
-		if(keycatch && c > 31 && c < 127) {
+		if(catchkey && c > 31 && c < 127) {
 			tmpkey[tmpindex++] = c;
 			c = '*';
 			PUTCH(c,tty->write_q);

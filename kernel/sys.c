@@ -239,9 +239,8 @@ int sys_null(int nr)
 #include <crypt.h>
 #include <random.h>
 #include <hash.h>
-#include <utils.h>
 
-static struct m_inode* get_inode(int fd) {
+struct m_inode* get_inode(int fd) {
 	struct file * file = current->filp[fd];
 	
 	struct m_inode * inode;
@@ -312,41 +311,6 @@ void edit_enclst(int fd, int encrypt) {
 			break;
 		}
 	}
-}
-
-int sys_getkey(char* key, int local, int scall) {
-	int i;
-	int length;
-
-	if(local) {
-		length = strlen(current->local_key);
-
-		for(i = 0; i < length; i++) {
-			if(scall) {
-				put_fs_byte(current->local_key[i], key + i);
-			}else {
-				key[i] = current->local_key[i];
-			}
-		}
-	}else {
-		length = strlen(gkey);
-		
-		for(i = 0; i < length; i++) {
-			if(scall) {
-				put_fs_byte(gkey[i], key + i);
-			}else {
-				key[i] = gkey[i];
-			}
-		}
-	}
-
-	if(scall) {
-		put_fs_byte(0, key + i);
-	}else {
-		key[i] = 0;
-	}
-	
-	return 0;
 }
 
 int sys_keyset(const char* key, int length, int local) {
@@ -427,12 +391,12 @@ int sys_keygen(int level) {
 	return 0;
 }
 
-int sys_catchkey(int catch) {
-	keycatch = catch;
+int sys_keycatch(int catch) {
+	catchkey = catch;
 	return 0;
 }
 
-int sys_copykey(char* key) {
+int sys_keycopy(char* key) {
 	int i;
 
 	for(i = 0; i < tmpindex; i++) {
@@ -446,202 +410,57 @@ int sys_copykey(char* key) {
 	return 0;
 }
 
-int sys_encr(char* file, int length, int scall) {
+int sys_keyget(char* key, int local, int scall) {
+	int i;
+	int length;
+
+	if(local) {
+		length = strlen(current->local_key);
+
+		for(i = 0; i < length; i++) {
+			if(scall) {
+				put_fs_byte(current->local_key[i], key + i);
+			}else {
+				key[i] = current->local_key[i];
+			}
+		}
+	}else {
+		length = strlen(gkey);
+		
+		for(i = 0; i < length; i++) {
+			if(scall) {
+				put_fs_byte(gkey[i], key + i);
+			}else {
+				key[i] = gkey[i];
+			}
+		}
+	}
+
+	if(scall) {
+		put_fs_byte(0, key + i);
+	}else {
+		key[i] = 0;
+	}
+	
+	return 0;
+}
+
+int sys_encr(int fd) {
 	if(!keyok(gkey)) {
 		return -EKEYNS;
 	}
 
-	length -= length < BLOCK_SIZE;		
-
-	int i, j, k;
-
-	char txtarr[length];
-	char* txt;
-
-	if(scall) {
-		txt = txtarr;
-
-		for(i = 0; i < length; i++) {
-			txt[i] = get_fs_byte(file + i);
-		}
-	}else {
-		txt = file;
-	}
-
-    int m = strlen(gkey);
-    int n = length / m + (length % m != 0);
-
-	char hed[m];
-	strcpy(hed, gkey);
-
-	char shed[m];
-	strcpy(shed, gkey);
-	
-    char mat[n][m];
-    char copmat[n][m];
-	
-	char tmp;
-	
-	for(k = 0; k < m - 1; k++) {
-		for(j = 0; j < m - k - 1; j++) {
-			if(shed[j] > shed[j + 1]) {
-				tmp = shed[j];
-				shed[j] = shed[j + 1];
-				shed[j + 1] = tmp;
-			}
-		}	
-	}
-	
-	for(i = 0; i < n; i++) {
-        for(j = 0; j < m; j++) {
-            k = i * m + j;
-
-			if(k < length && isascii(txt[k])) {
-                mat[i][j] = txt[k];
-            }else {
-                mat[i][j] = PAD_CHR;
-			}
-
-			copmat[i][j] = mat[i][j];
-        }
-	}
-
-	for(k = 0; k < m; k++) {
-		for(j = 0; j < m; j++) {
-			if(j != k && hed[k] == shed[j]) {
-				for(i = 0; i < n; i++) {
-					mat[i][j] = copmat[i][k];
-				}
-			}
-		}
-	}
-
-	memset(copmat, 0, sizeof(copmat));
-
-	char* cip = copmat;
-
-	for(k = 0, j = 0; j < m; j++) {
-		for(i = 0; i < n; i++) {
-			cip[k++] = mat[i][j];
-		}
-	}
-	
-	for(i = 0; i < k; i++) {
-		if(scall) {
-			put_fs_byte(cip[i], file + i);
-		}else {
-			file[i] = cip[i];
-		}
-	}
-
-	return 0;
-}
-
-int sys_decr(char* file, int length, int scall) {
-	if(!keyok(gkey)) {
-		return -EKEYNS;
-	}
-
-	length -= length < BLOCK_SIZE;		
-	
-	int i, j, k;
-	
-	char ciparr[length];
-	char* cip;
-
-	if(scall) {
-		cip = ciparr;
-
-		for(i = 0; i < length; i++) {
-			cip[i] = get_fs_byte(file + i);
-		}
-	}else {
-		cip = file;
-	}
-
-    int m = strlen(gkey);
-    int n = length / m + (length % m != 0);
-
-	char hed[m];
-	strcpy(hed, gkey);
-
-	char shed[m];
-	strcpy(shed, gkey);
-	
-    char mat[n][m];
-    char copmat[n][m];
-	
-	char tmp;
-
-	for(k = 0; k < m - 1; k++) {
-		for(j = 0; j < m - k - 1; j++) {
-			if(shed[j] > shed[j + 1]) {
-				tmp = shed[j];
-				shed[j] = shed[j + 1];
-				shed[j + 1] = tmp;
-			}
-		}	
-	}
-	
-	for(i = 0; i < n; i++) {
-        for(j = 0; j < m; j++) {
-            k = j * n + i;
-
-			copmat[i][j] = mat[i][j] = cip[k];
-        }
-	}
-
-	for(k = 0; k < m; k++) {
-		for(j = 0; j < m; j++) {
-			if(j != k && hed[k] == shed[j]) {
-				for(i = 0; i < n; i++) {
-					mat[i][k] = copmat[i][j];
-				}
-			}
-		}
-	}
-
-	memset(copmat, 0, sizeof(copmat));
-
-	char* txt = copmat;
-
-	for(k = 0, i = 0; i < n; i++) {
-        for(j = 0; j < m; j++) {
-			if(mat[i][j] != PAD_CHR) {
-                txt[k++] = mat[i][j];
-			}
-        }
-	}
-
-	for(i = 0; i < k; i++) {
-		if(scall) {
-			put_fs_byte(txt[i], file + i);
-		}else {
-			file[i] = txt[i];
-		}
-	}
-
-	return 0;
-}
-
-int sys_encrlst(int fd) {	
 	edit_enclst(fd, 1);
-
+	
 	return 0;
 }
 
-int sys_decrlst(int fd) {
+int sys_decr(int fd) {
+	if(!keyok(gkey)) {
+		return -EKEYNS;
+	}
+
 	edit_enclst(fd, 0);
-
-	return 0;
-}
-
-int sys_uisencr(int fd) {
-	return isencr(get_inum(fd));
-}
-
-int sys_ignorecrypt(int ignore) {
-	igncry = ignore;
 
 	return 0;
 }

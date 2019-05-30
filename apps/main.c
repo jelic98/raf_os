@@ -1,9 +1,5 @@
-#include <unistd.h>
 #include <string.h>
 #include <crypt.h>
-
-#define H_UTILS_IMPLEMENT
-#include "utils.h"
 
 int main(char* args) {
 	char gkey[] = "1234";
@@ -14,14 +10,14 @@ int main(char* args) {
 	
 	while(1) {
 		char global[KEY_MAXLEN];
-		getkey(global, 0, 1);
+		keyget(global, 0, 1);
 		print(global);
 
 		char local[KEY_MAXLEN];
-		getkey(local, 1, 1);
+		keyget(local, 1, 1);
 		print(local);
 	
-		pause();
+		pause_input();
 	}
 		
 	_exit(0);
