@@ -237,33 +237,86 @@ int sys_null(int nr)
 
 // PROJEKAT
 #include <sys/stat.h>
+#include <dirent.h>
 #include <crypt.h>
 #include <random.h>
 #include <hash.h>
 
-static struct file* get_file(int fd) {
-	return current->filp[fd];
-}
+static int getentry(struct m_inode* inode, struct dirent * dirent, int count) {
+	struct file* filp = current->filp[0];
+	unsigned int i = 0;
 
-static struct m_inode* get_inode(int fd) {
-	struct file * file = get_file(fd);
+	while(filp && filp->f_inode->i_num != inode->i_num) {
+		filp = current->filp[i];
+		i++;
+	}
+
+	if(!filp || !inode) {
+		return -EBADF;
+	}
+
+	struct buffer_head* bh;
+	struct dir_entry* de;
+	unsigned int offset;
+	char c;
+
+	if(!inode || !S_ISDIR(inode->i_mode)) {
+		return -EBADF;
+	}
 	
-	struct m_inode * inode;
-	inode = file->f_inode;
+	 while(filp->f_pos < inode->i_size) {
+		offset = filp->f_pos & (BLOCK_SIZE - 1);
+		bh = read_file_block(inode, filp->f_pos / BLOCK_SIZE);
+		
+		if(!bh) {
+			filp->f_pos += BLOCK_SIZE - offset;
+			continue;
+		}
+		
+		while(offset < BLOCK_SIZE && filp->f_pos < inode->i_size) {
+			de = (struct dir_entry*) (offset + bh->b_data);
+			offset += sizeof(struct dir_entry);
+			filp->f_pos += sizeof(struct dir_entry);
 
-	return inode;
+			if(de->inode) {
+				for(i = 0; i < NAME_LEN; i++) {
+					if((c = de->name[i]) != 0) {
+						dirent->d_name[i] = c;
+					}else {
+						break;
+					}
+				}
+				
+				if(i) {
+					dirent->d_ino = de->inode;
+					dirent->d_reclen = i;
+					dirent->d_name[i] = 0;
+					
+					brelse(bh);
+					
+					return i;
+				}
+			}
+		}
+
+		brelse(bh);
+	}
+
+	return 0;
 }
 
-static int get_inum(int fd) {
-	return get_inode(fd)->i_num;
+static void strkpy(char* src, char* dst, int len) {
+	int i;
+
+	for(i = 0; i < len; i++) {
+		dst[i] = get_fs_byte(src + i);
+	}
 }
 
 int isencr(int inum) {	
 	int i;
 
 	for(i = 0; i < LST_MAXLEN; i++) {
-		//printk("SEARCH:\t%d\tCURRENT:\t%d\tKEY:\t%s\tENCRYPT: %d\n", inum, *enc_list[i].inum, enc_list[i].key, *enc_list[i].encrypted);
-
 		if(*enc_list[i].inum == inum) {
 			return *enc_list[i].encrypted;
 		}
@@ -298,8 +351,7 @@ static void init_enclst() {
 	iput(inode);
 }
 
-static void edit_enclst(int fd, int encrypt) {
-	int inum = get_inum(fd);
+static void edit_enclst(int inum, int encrypt) {
 	int i;
 
 	for(i = 0; i < LST_MAXLEN; i++) {
@@ -318,16 +370,22 @@ static void edit_enclst(int fd, int encrypt) {
 	}
 }
 
-int krypt(int fd, int encrypt) {
-	if(!keyok(gkey)) {
+int krypt(struct m_inode* inode, char* path, int len, int encrypt) {
+	char key[KEY_MAXLEN];
+	keyget(key, keytype, 0);
+	
+	if(!keyok(key)) {
 		return -EKEYNS;
 	}
 
-	struct m_inode* inode = get_inode(fd);
+	char pathcpy[KEY_MAXLEN] = {0};
+	strkpy(path, pathcpy, len);
+
+	if(strstr(pathcpy, ".bin")) {
+		return 0;
+	}
 
 	if(S_ISREG(inode->i_mode)) {
-		struct file* file = get_file(fd);
-		
 		int size = inode->i_size / BLOCK_SIZE;
 		size += inode->i_size % BLOCK_SIZE ? 1 : 0;
 
@@ -343,18 +401,50 @@ int krypt(int fd, int encrypt) {
 			}
 
 			if(encrypt) {
-				encrstr(bh->b_data);
+				encrstr(bh->b_data, key);
 			}else {
-				decrstr(bh->b_data);
+				decrstr(bh->b_data, key);
 			}
 
 			brelse(bh);
 		}	
 	}else if(S_ISDIR(inode->i_mode)) {
+		int count;
+	
+		while(1) {
+			struct dirent entry;
+			
+			count = getentry(inode, &entry, 1);
+
+			if(count <= 0) {
+				break;
+			}
+
+			if(entry.d_name[0] == '.') {
+				continue;
+			}
 		
+			int i;
+
+			int nlen = strlen(entry.d_name);
+
+			for(i = 0; i <= nlen; i++) {
+				put_fs_byte(entry.d_name[i], path + len + i);
+			}
+			
+			struct m_inode* child = namei(path);
+			
+			krypt(child, path, len + nlen, encrypt);
+		
+			for(i = 0; i < len; i++) {
+				put_fs_byte(pathcpy[i], path + i);
+			}
+				
+			put_fs_byte(0, path + i);
+		}
 	}
 	
-	edit_enclst(fd, encrypt);
+	edit_enclst(inode->i_num, encrypt);
 
 	return 0;
 }
@@ -491,10 +581,10 @@ int sys_keyget(char* key, int local, int scall) {
 	return 0;
 }
 
-int sys_encr(int fd) {
-	return krypt(fd, 1);
+int sys_encr(int fd, char* path, int len) {
+	return krypt(current->filp[fd]->f_inode, path, len, 1);
 }
 
-int sys_decr(int fd) {
-	return krypt(fd, 0);
+int sys_decr(int fd, char* path, int len) {
+	return krypt(current->filp[fd]->f_inode, path, len, 0);
 }

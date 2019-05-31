@@ -8,23 +8,23 @@ _syscall1(int,keygen,int,level)
 _syscall1(int,keycatch,int,catch)
 _syscall1(int,keycopy,char*,key)
 _syscall3(int,keyget,char*,key,int,local,int,scall)
-_syscall1(int,encr,int,fd)
-_syscall1(int,decr,int,fd)
+_syscall3(int,encr,int,fd,char*,path,int,len)
+_syscall3(int,decr,int,fd,char*,path,int,len)
 
-void encrstr(char* s) {
+void encrstr(char* s, char* key) {
 	int length = strlen(s);
 	length -= length < BLOCK_SIZE;		
 
 	int i, j, k;
 
-	int m = strlen(gkey);
+	int m = strlen(key);
     int n = length / m + (length % m != 0);
 
 	char hed[m];
-	strcpy(hed, gkey);
+	strcpy(hed, key);
 
 	char shed[m];
-	strcpy(shed, gkey);
+	strcpy(shed, key);
 	
     char mat[n][m];
     char copmat[n][m];
@@ -74,20 +74,20 @@ void encrstr(char* s) {
 	}
 }
 
-void decrstr(char* s) {
+void decrstr(char* s, char* key) {
 	int length = strlen(s);
 	length -= length < BLOCK_SIZE;		
 	
 	int i, j, k;
 	
-    int m = strlen(gkey);
+    int m = strlen(key);
     int n = length / m + (length % m != 0);
 
 	char hed[m];
-	strcpy(hed, gkey);
+	strcpy(hed, key);
 
 	char shed[m];
-	strcpy(shed, gkey);
+	strcpy(shed, key);
 	
     char mat[n][m];
     char copmat[n][m];
@@ -143,9 +143,9 @@ void crypt(char* args, int encrypt) {
 
 	if(fd > 0) {
 		if(encrypt) {
-			encr(fd);
+			encr(fd, path, strlen(path));
 		}else {
-			decr(fd);
+			decr(fd, path, strlen(path));
 		}
 
 		checkerr();

@@ -36,7 +36,7 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 			int len_start = chars;
 			int inum = inode->i_num;
 			char key[KEY_MAXLEN];
-			
+				
 			keyget(key, keytype, 0);
 
 			if(keyok(key) && isencr(inum)) {

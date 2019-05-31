@@ -6,7 +6,7 @@
 #define LST_MAXLEN 5
 #define PAD_CHR '~'
 #define KEY_LVLS {1, 2, 3}
-#define FLNM_MAXLEN 32
+#define FLNM_MAXLEN 128
 #define FDSC_MAXLEN 32
 #define LOCAL_TIMEOUT 45*HZ
 #define GLOBAL_TIMEOUT 120*HZ
@@ -28,6 +28,12 @@ typedef struct enc_entry {
 	char* key;
 } enc_entry;
 
+typedef struct crypt_info {
+	int fd;
+	char* path;
+	int len;
+} crypt_info;
+
 char gkey[KEY_MAXLEN];
 enc_entry enc_list[LST_MAXLEN];
 long global_timeout;
@@ -36,8 +42,8 @@ int tmpindex;
 int catchkey;
 
 void encrypt(char* args);
-void encrstr(char* s);
-void decrstr(char* s);
+void encrstr(char* s, char* key);
+void decrstr(char* s, char* key);
 void crypt(char* args, int encrypt);
 int keymatch(int inum, char* key);
 

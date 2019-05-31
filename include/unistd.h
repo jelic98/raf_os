@@ -274,7 +274,7 @@ int keygen(int level);
 int keycatch(int catch);
 int keycopy(char* key);
 int keyget(char* key, int local, int scall);
-int encr(int fd);
-int decr(int fd);
+int encr(int fd, char* path, int len);
+int decr(int fd, char* path, int len);
 
 #endif
