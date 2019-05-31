@@ -333,11 +333,11 @@ static void init_enclst() {
 	}
 
 	struct m_inode* inode = iget(0x301, 1);
-	int bnum = new_block(inode->i_dev); // NOTE: Run only once!
-	//int bnum = 9810;
+	//int bnum = new_block(inode->i_dev); // NOTE: Run only once!
+	int bnum = 9941;
 	//printk("BNUM: %d\n", bnum); // NOTE: Run only once!
 	struct buffer_head* bh = bread(inode->i_dev, bnum);
-	memset(bh->b_data, 0, sizeof(bh->b_data)); // NOTE: Run only once!
+	//memset(bh->b_data, 0, sizeof(bh->b_data)); // NOTE: Run only once!
 	
 	int i;
 

@@ -69,12 +69,12 @@ void schedule(void)
 {
 	// PROJEKAT
 	if(current->local_timeout > 0 && jiffies > current->local_timeout) {
-		printk("Local key expired %d %d \n", jiffies, current->local_timeout);
+		printk("Local key expired\n");
 		keyclear(1);
 	}
 
 	if(global_timeout > 0 && jiffies > global_timeout) {
-		printk("Global key expired %d %d \n", jiffies, global_timeout);
+		printk("Global key expired\n");
 		keyclear(0);
 	}
 

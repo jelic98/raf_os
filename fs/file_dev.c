@@ -43,8 +43,8 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 				if(!keymatch(inum, key)) {
 					return -EINVAL;
 				}
-
-				decr(pc, len_start, 0);
+				
+				decrstr(pc, key);
 				chars--;
 			}
 	
@@ -52,7 +52,7 @@ int file_read(struct m_inode * inode, struct file * filp, char * buf, int count)
 				put_fs_byte(*(p++),buf++);
 			
 			if(keyok(key) && isencr(inum)) {
-				encr(pc, len_start, 0);
+				encrstr(pc, key);
 			}
 
 			brelse(bh);
@@ -116,7 +116,7 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 				return -EINVAL;
 			}
 
-			decr(pc, len_start, 0);
+			decrstr(pc, key);
 			c--;
 			p--;
 		}
@@ -125,7 +125,7 @@ int file_write(struct m_inode * inode, struct file * filp, char * buf, int count
 			*(p++) = get_fs_byte(buf++);
 	
 		if(keyok(gkey) && isencr(inum)) {
-			encr(pc, len_end, 0);
+			encrstr(pc, key);
 		}
 		
 		brelse(bh);

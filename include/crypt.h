@@ -28,12 +28,6 @@ typedef struct enc_entry {
 	char* key;
 } enc_entry;
 
-typedef struct crypt_info {
-	int fd;
-	char* path;
-	int len;
-} crypt_info;
-
 char gkey[KEY_MAXLEN];
 enc_entry enc_list[LST_MAXLEN];
 long global_timeout;
