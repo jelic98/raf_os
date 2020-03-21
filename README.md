@@ -8,4 +8,4 @@ Homework 2: [statement](https://github.com/jelic98/raf_os/blob/master/homework_2
 
 Project 1: [statement](https://github.com/jelic98/raf_os/blob/master/project_1/project_1.pdf), [implementation](https://github.com/jelic98/raf_os/tree/master/project_1)
 
-Project 2: [statement](https://github.com/jelic98/raf_os/blob/master/project_1/project_2.pdf), [implementation](https://github.com/jelic98/raf_os/tree/master/project_2)
+Project 2: [statement](https://github.com/jelic98/raf_os/blob/master/project_2/project_2.pdf), [implementation](https://github.com/jelic98/raf_os/tree/master/project_2)
