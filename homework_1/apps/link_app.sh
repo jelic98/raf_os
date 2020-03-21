@@ -3,7 +3,7 @@ if [ $# -eq 0 ]; then
 echo "[FAIL] No arguments supplied"
 else
 clear
-gcc -m32 -o $1.bin trougao.c kvadrat.c krug.c oblici.c -nostdlib -nostdinc -e main -Ttext=100 -static -fno-builtin ../lib/lib.a -I../include
+gcc -m32 -o $1.bin file1.c file2.c -nostdlib -nostdinc -e main -Ttext=100 -static -fno-builtin ../lib/lib.a -I../include
 cd ..
 mkdir tmp_hd
 sudo mount -o loop,offset=10240 hd_oldlinux.img tmp_hd
