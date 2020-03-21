@@ -1,3 +1,5 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 # RAF OS
 
 Homeworks and projects from *"Operating Systems"* course at Faculty of Computing in Belgrade. Linux kernel modifications are labeled with comments ``` // DOMACI ``` or ``` // PROJEKAT ```.
